@@ -1,0 +1,16 @@
+# Render reads this file when you create a "Blueprint". It sets up the Pantheon API as a free web service.
+services:
+  - type: web
+    name: pantheon-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: PANTHEON_ALLOW_RESET
+        value: "true"
