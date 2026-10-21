@@ -24,7 +24,7 @@ PERMISSIONS: dict[Role, set[str]] = {
                          "plan.signoff", "maintenance.edit", "audit.read", "dispute.create", "users.read"},
     Role.admin: {"read", "track.export", "plan.edit", "plan.approve", "plan.export", "alert.act",
                  "plan.signoff", "maintenance.edit", "audit.read", "dispute.create", "users.read",
-                 "limits.edit", "users.edit", "webhooks.manage"},
+                 "limits.edit", "users.edit", "webhooks.manage", "business.read"},
 }
 
 

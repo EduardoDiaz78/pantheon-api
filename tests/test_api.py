@@ -457,3 +457,24 @@ def test_battery_state_model_requires_signoff(client, store):
     r = client.post(f"/v1/sites/site-c/plans/{DAY}/approve", json={"strategy": "balanced", "sign_off": True, "acknowledge_soft_violations": True}, headers=MANAGER)
     assert r.status_code == 200, r.text
     assert "modelled battery state" in next(e["detail"] for e in store.audit if e["action"] == "plan.approve" and e["site_id"] == "site-c")
+
+
+# ---------- product lines and business plan ----------
+
+def test_products_list_and_detail(client):
+    r = client.get("/v1/products", headers=VIEWER)
+    assert r.status_code == 200
+    lines = r.json()
+    assert [l["number"] for l in lines] == list(range(1, 10))
+    d = client.get("/v1/products/plant-forecasting", headers=VIEWER).json()
+    assert d["sample"]["realized_mxn"] == 36700 and d["sample"]["theoretical_max_mxn"] == 47100
+    es = client.get("/v1/products/critical-hours", headers={**VIEWER, **ES}).json()
+    assert es["name"] == "Servicio de horas críticas" and "febrero" in es["sample"]["note"]
+    assert client.get("/v1/products/nope", headers=VIEWER).status_code == 404
+
+
+def test_business_plan_admin_only_and_adds_up(client):
+    assert client.get("/v1/business/plan", headers=MANAGER).status_code == 403
+    p = client.get("/v1/business/plan", headers=ADMIN).json()
+    assert round(sum(l["arr_2030_usd"] for l in p["lines"])) == p["target_arr_usd"] == 30_000_000
+    assert p["ramp"][-1]["arr_usd"] == 30_000_000 and p["lines"][0]["id"] == "battery-optimization"
