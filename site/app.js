@@ -196,6 +196,7 @@
     links.push(["lines", t("nav_lines")]);
     if (can("audit.read")) links.push(["audit", t("nav_audit")]);
     if (can("business.read")) links.push(["plan", t("nav_plan")]);
+    if (can("business.read")) links.push(["model", mt("nav_model")]);
     var nav = links.map(function (l) {
       var badge = l[0] === "alerts" && openAlerts ? ' <span class="badge">' + openAlerts + "</span>" : "";
       return '<a href="#/' + l[0] + '"' + (route === l[0] ? ' aria-current="page"' : "") + ">" + esc(l[1]) + badge + "</a>";
@@ -758,8 +759,369 @@
         '<div class="row">' + kpi(t("plan_total"), m(total), esc(p.note), "") + "</div>" +
         '<section class="card"><h2>' + esc(t("plan_lines")) + "</h2>" + bars + "</section>" +
         '<div class="banner" style="background:var(--peak-tint);border:1px solid var(--peak)"><strong>' + esc(t("plan_gate")) + "</strong><span>" + esc(p.gate) + "</span></div>" +
-        '<h2 style="font-size:17px;font-weight:500">' + esc(t("plan_ramp")) + '</h2><div class="row" style="align-items:stretch">' + ramp + "</div>" +
+        '<div class="head" style="align-items:center"><h2 style="font-size:17px;font-weight:500">' + esc(t("plan_ramp")) + '</h2><a class="btn" style="display:inline-flex;align-items:center;text-decoration:none" href="#/model">' + esc(mt("nav_model")) + ' →</a></div><div class="row" style="align-items:stretch">' + ramp + "</div>" +
         '<section class="card"><h2>' + esc(t("plan_cond")) + '</h2><ol style="margin:0;padding-left:18px">' + p.conditions.map(function (c) { return "<li>" + esc(c) + "</li>"; }).join("") + "</ol></section>", r[1].length);
+    });
+  }
+
+
+  // ---------- Revenue model page (Genau internal) ----------
+  var MT = {
+    en: {
+      nav_model: "Revenue model", title: "Revenue model, Mexico 2027–2031",
+      lede: "Nine product lines, every driver adjustable. Planning estimates, not contracted revenue.",
+      reset: "Reset to base", csv: "Download CSV", currency: "Currency", view: "View", gross: "Gross revenue", net: "Net to Genau",
+      scenario: "Scenario", bear: "Bear", base: "Base", bull: "Bull", years: "Years", from: "From", to: "to",
+      g_lines: "Revenue lines", all: "All", none: "None",
+      g_market: "Market", g_bess: "1 · Battery optimization", g_plants: "2 · Plant forecasting", g_critical: "3 · Critical-hour service",
+      g_traders: "4 · Supplier and trader forecasts", g_whitelabel: "5 · White-label", g_bank: "6 · Bankability", g_floors: "7 · Revenue floors",
+      g_grid: "8 · Grid forecasting", g_qenergy: "9 · QEnergy", g_net: "Net to Genau", g_costs: "Costs",
+      gatePass: "Feb 2027 proof passes", gatePass_d: "If not, batteries, critical hours and floors slip a year",
+      cfeRunsMixed: "CFE runs its mixed-scheme batteries", cfeRunsMixed_d: "If not, we can win 15% of 1,850 MW",
+      conv2GW: "Second call: generation selected", capPriceK: "Capacity price", priceEscalator: "Price increase a year", fx: "MXN per USD",
+      feePct: "Our fee, % of battery revenue", bessShare: "Our share of addressable batteries, 2030", arbitrageK: "Battery arbitrage revenue",
+      capCredit: "Share of capacity price a battery earns", spreadTrend: "Spread trend", viaQEnergyPct: "Battery MW brought by QEnergy", qenergyCutPct: "QEnergy's cut on those",
+      plantsPrice: "Price per MW", plantsPen: "Adoption vs base", criticalPricing: "Pricing", fixed: "Fixed fee", savings: "Share of savings",
+      criticalFee: "Fee per site", criticalPen: "Share of qualified users, 2030", savingsShare: "Our share of savings", cutMW: "Load cut per site in critical hours",
+      tradersPrice: "Price per firm", tradersClients: "Clients, 2030", wlPrice: "Price per MW", wlTier: "Price above 100 MW per partner", wlPen: "Share of factory batteries, 2030", wlPartners: "Integrator partners, 2030",
+      reportK: "Price per report", subK: "Price per subscription", partnerYear: "Floor partner signed in", never: "Never", marginK: "Our margin per MW",
+      gridMult: "Contract value vs base", bookGWh: "QEnergy PPA book", feePerMWh: "Fee per MWh", ownershipPct: "Genau's share of Genau Mexico", bookedInJVPct: "Revenue booked in Genau Mexico",
+      team2030: "Team, 2030", other2030: "Other operating costs, 2030", costPerHeadK: "Cost per person", infraPct: "Cloud and data, % of revenue", salesPct: "Sales costs, % of revenue",
+      k_rev: "Revenue", k_cum: "Cumulative", k_cagr: "Growth a year", k_ebitda: "EBITDA", k_mw: "Battery MW we run", k_target: "vs $30M target, 2030",
+      margin: "margin", chart_t: "Revenue by line", chart_target: "$30M target", ebitda_dots: "EBITDA", table_t: "By line and year", total: "Total", net_row: "Net to Genau", costs_row: "Costs", ebitda_row: "EBITDA",
+      drivers: "Show volumes and prices", sens_t: "What moves {year} revenue most", sens_d: "Each driver 20% lower and higher, everything else as set",
+      scen_t: "Scenarios in {year}", mix_t: "Mix in {year}", notes_t: "How the model works",
+      notes: [
+        "Revenue in a year = average volume in that year × price that year. Bear, base and bull scale adoption (×0.6 / 1 / 1.35), prices (×0.9 / 1 / 1.1) and how much of the second call gets built.",
+        "Batteries: addressable MW = first-call storage (≈1,040 MW) and standalone projects, plus 30% of the generation selected in the second call as it is built. Battery market revenue = arbitrage + capacity price × capacity share, with spreads trending as set. Our fee is a share of that.",
+        "CFE mixed-scheme batteries (1,850 MW) count only if CFE does not run them. If the February 2027 scoring fails, battery share drops 20% and batteries, critical hours and floors slip a year.",
+        "Critical hours: qualified users grow 8% a year from 1,437. Savings pricing = load cut × capacity price × hit rate × our share.",
+        "White-label: the lower rate applies above 100 MW per integrator partner. Floors: a share of our battery MW once a balance-sheet partner is signed.",
+        "Net to Genau removes QEnergy's cut on batteries it brings and the 10% of Genau Mexico Genau does not own. Costs: team × cost per person (rising 4% a year), other operating costs (legal, offices, travel, insurance, market fees) and cloud, data and sales as % of revenue."
+      ],
+      vol: "Volume", price: "Price", units_MW: "MW", units_sites: "sites", units_firms: "firms", units_GWh: "GWh"
+    },
+    es: {
+      nav_model: "Modelo de ingresos", title: "Modelo de ingresos, México 2027–2031",
+      lede: "Nueve líneas de producto, cada supuesto ajustable. Estimaciones de planeación, no ingresos contratados.",
+      reset: "Volver al caso base", csv: "Descargar CSV", currency: "Moneda", view: "Vista", gross: "Ingreso bruto", net: "Neto para Genau",
+      scenario: "Escenario", bear: "Pesimista", base: "Base", bull: "Optimista", years: "Años", from: "De", to: "a",
+      g_lines: "Líneas de ingreso", all: "Todas", none: "Ninguna",
+      g_market: "Mercado", g_bess: "1 · Optimización de baterías", g_plants: "2 · Pronóstico para plantas", g_critical: "3 · Horas críticas",
+      g_traders: "4 · Suministradores y comercializadores", g_whitelabel: "5 · Marca blanca", g_bank: "6 · Bancabilidad", g_floors: "7 · Pisos de ingreso",
+      g_grid: "8 · Pronóstico de red", g_qenergy: "9 · QEnergy", g_net: "Neto para Genau", g_costs: "Costos",
+      gatePass: "La prueba de feb 2027 se cumple", gatePass_d: "Si no, baterías, horas críticas y pisos se atrasan un año",
+      cfeRunsMixed: "CFE opera sus baterías del esquema mixto", cfeRunsMixed_d: "Si no, podemos ganar 15% de 1,850 MW",
+      conv2GW: "Segunda convocatoria: generación seleccionada", capPriceK: "Precio de potencia", priceEscalator: "Aumento de precio al año", fx: "MXN por USD",
+      feePct: "Nuestra comisión, % del ingreso de la batería", bessShare: "Nuestra parte de las baterías, 2030", arbitrageK: "Ingreso por arbitraje de la batería",
+      capCredit: "Parte del precio de potencia que gana la batería", spreadTrend: "Tendencia del diferencial", viaQEnergyPct: "MW de baterías que trae QEnergy", qenergyCutPct: "Comisión de QEnergy sobre esos",
+      plantsPrice: "Precio por MW", plantsPen: "Adopción vs base", criticalPricing: "Precio", fixed: "Cuota fija", savings: "Parte del ahorro",
+      criticalFee: "Cuota por sitio", criticalPen: "Parte de usuarios calificados, 2030", savingsShare: "Nuestra parte del ahorro", cutMW: "Carga que baja cada sitio en horas críticas",
+      tradersPrice: "Precio por empresa", tradersClients: "Clientes, 2030", wlPrice: "Precio por MW", wlTier: "Precio arriba de 100 MW por socio", wlPen: "Parte de baterías industriales, 2030", wlPartners: "Socios integradores, 2030",
+      reportK: "Precio por reporte", subK: "Precio por suscripción", partnerYear: "Socio del piso firmado en", never: "Nunca", marginK: "Nuestro margen por MW",
+      gridMult: "Valor de contratos vs base", bookGWh: "Cartera de PPA de QEnergy", feePerMWh: "Cuota por MWh", ownershipPct: "Parte de Genau en Genau México", bookedInJVPct: "Ingreso registrado en Genau México",
+      team2030: "Equipo, 2030", other2030: "Otros gastos de operación, 2030", costPerHeadK: "Costo por persona", infraPct: "Nube y datos, % del ingreso", salesPct: "Costos de venta, % del ingreso",
+      k_rev: "Ingreso", k_cum: "Acumulado", k_cagr: "Crecimiento anual", k_ebitda: "EBITDA", k_mw: "MW de baterías que operamos", k_target: "vs meta de $30M, 2030",
+      margin: "margen", chart_t: "Ingreso por línea", chart_target: "Meta $30M", ebitda_dots: "EBITDA", table_t: "Por línea y año", total: "Total", net_row: "Neto para Genau", costs_row: "Costos", ebitda_row: "EBITDA",
+      drivers: "Ver volúmenes y precios", sens_t: "Lo que más mueve el ingreso de {year}", sens_d: "Cada supuesto 20% abajo y arriba, todo lo demás como está",
+      scen_t: "Escenarios en {year}", mix_t: "Mezcla en {year}", notes_t: "Cómo funciona el modelo",
+      notes: [
+        "Ingreso del año = volumen promedio del año × precio del año. Pesimista, base y optimista escalan la adopción (×0.6 / 1 / 1.35), los precios (×0.9 / 1 / 1.1) y cuánto de la segunda convocatoria se construye.",
+        "Baterías: MW atendibles = almacenamiento de la primera convocatoria (≈1,040 MW) y proyectos independientes, más 30% de la generación seleccionada en la segunda convocatoria conforme se construye. Ingreso de mercado de la batería = arbitraje + precio de potencia × parte de potencia, con la tendencia del diferencial que elijas. Nuestra comisión es una parte de eso.",
+        "Las baterías del esquema mixto de CFE (1,850 MW) cuentan solo si CFE no las opera. Si la calificación de febrero 2027 falla, nuestra parte baja 20% y baterías, horas críticas y pisos se atrasan un año.",
+        "Horas críticas: los usuarios calificados crecen 8% al año desde 1,437. Precio por ahorro = carga reducida × precio de potencia × tasa de acierto × nuestra parte.",
+        "Marca blanca: la tarifa menor aplica arriba de 100 MW por socio integrador. Pisos: una parte de nuestros MW de baterías una vez firmado un socio con balance.",
+        "Neto para Genau resta la comisión de QEnergy sobre las baterías que trae y el 10% de Genau México que no es de Genau. Costos: equipo × costo por persona (sube 4% al año), otros gastos de operación (legal, oficinas, viajes, seguros, cuotas de mercado) y nube, datos y ventas como % del ingreso."
+      ],
+      vol: "Volumen", price: "Precio", units_MW: "MW", units_sites: "sitios", units_firms: "empresas", units_GWh: "GWh"
+    }
+  };
+  function mt(k) { return (MT[state.lang] && MT[state.lang][k]) || MT.en[k] || k; }
+
+  // Sliders: key, min, max, step, display kind. "x.*" keys scale a default yearly array by the chosen 2030 value.
+  var MCTRL = {
+    market: [["market.conv2GW", 0, 10, 0.5, "gw"], ["market.capPriceK", 80, 400, 5, "kmw"], ["market.priceEscalator", 0, 8, 0.5, "pct"], ["market.fx", 15, 23, 0.1, "fx"]],
+    bess: [["bess.feePct", 3, 12, 0.5, "pct"], ["x.bessShare2030", 0.05, 0.8, 0.01, "frac"], ["bess.arbitrageK", 20, 200, 5, "kmw"], ["bess.capCredit", 0, 1, 0.05, "frac"],
+      ["bess.spreadTrend", -8, 4, 0.5, "pcty"], ["bess.viaQEnergyPct", 0, 60, 1, "pct"], ["bess.qenergyCutPct", 0, 50, 1, "pct"]],
+    plants: [["plants.priceK", 0.5, 5, 0.1, "kmw"], ["x.plantsPen", 25, 250, 5, "pct"]],
+    critical: [["critical.feeK", 5, 50, 1, "k"], ["x.criticalPen2030", 0.02, 0.4, 0.01, "frac"], ["critical.savingsShare", 5, 50, 0.5, "pct"], ["critical.cutMW", 0.1, 3, 0.1, "mw"]],
+    traders: [["traders.priceK", 50, 400, 10, "k"], ["x.tradersClients2030", 1, 45, 1, "n"]],
+    whitelabel: [["whitelabel.priceK", 5, 40, 0.5, "kmw"], ["whitelabel.tierK", 4, 30, 0.5, "kmw"], ["x.wlPen2030", 0.03, 0.5, 0.01, "frac"], ["x.wlPartners2030", 1, 12, 1, "n"]],
+    bank: [["bank.reportK", 20, 200, 5, "k"], ["bank.subK", 10, 150, 5, "k"]],
+    floors: [["floors.marginK", 2, 25, 0.5, "kmw"]],
+    grid: [["x.gridMult", 0, 300, 10, "pct"]],
+    qenergy: [["qenergy.bookGWh", 50, 1500, 25, "gwh"], ["qenergy.feePerMWh", 0.1, 3, 0.05, "usdmwh"]],
+    net: [["net.ownershipPct", 50, 100, 1, "pct"], ["net.bookedInJVPct", 0, 100, 5, "pct"]],
+    costs: [["x.team2030", 4, 80, 1, "n"], ["costs.costPerHeadK", 50, 300, 5, "k"], ["costs.infraPct", 0, 25, 0.5, "pct"], ["costs.salesPct", 0, 25, 0.5, "pct"], ["x.other2030", 0, 6, 0.1, "musd"]]
+  };
+  var MLABEL = {
+    "market.conv2GW": "conv2GW", "market.capPriceK": "capPriceK", "market.priceEscalator": "priceEscalator", "market.fx": "fx",
+    "bess.feePct": "feePct", "x.bessShare2030": "bessShare", "bess.arbitrageK": "arbitrageK", "bess.capCredit": "capCredit", "bess.spreadTrend": "spreadTrend",
+    "bess.viaQEnergyPct": "viaQEnergyPct", "bess.qenergyCutPct": "qenergyCutPct", "plants.priceK": "plantsPrice", "x.plantsPen": "plantsPen",
+    "critical.feeK": "criticalFee", "x.criticalPen2030": "criticalPen", "critical.savingsShare": "savingsShare", "critical.cutMW": "cutMW",
+    "traders.priceK": "tradersPrice", "x.tradersClients2030": "tradersClients", "whitelabel.priceK": "wlPrice", "whitelabel.tierK": "wlTier",
+    "x.wlPen2030": "wlPen", "x.wlPartners2030": "wlPartners", "bank.reportK": "reportK", "bank.subK": "subK", "floors.marginK": "marginK",
+    "x.gridMult": "gridMult", "qenergy.bookGWh": "bookGWh", "qenergy.feePerMWh": "feePerMWh", "net.ownershipPct": "ownershipPct", "net.bookedInJVPct": "bookedInJVPct",
+    "x.team2030": "team2030", "x.other2030": "other2030", "costs.costPerHeadK": "costPerHeadK", "costs.infraPct": "infraPct", "costs.salesPct": "salesPct"
+  };
+
+  function getPath(o, path) { return path.split(".").reduce(function (a, k) { return a == null ? a : a[k]; }, o); }
+  function setPath(o, path, v) { var ks = path.split("."), last = ks.pop(); var t = ks.reduce(function (a, k) { return a[k]; }, o); t[last] = v; }
+
+  function modelBaseUI() {
+    var d = PantheonModel.defaults(), v = {};
+    Object.keys(MCTRL).forEach(function (g) { MCTRL[g].forEach(function (c) { v[c[0]] = c[0].indexOf("x.") === 0 ? null : getPath(d, c[0]); }); });
+    v["x.bessShare2030"] = d.bess.share[3]; v["x.plantsPen"] = 100; v["x.criticalPen2030"] = d.critical.pen[3]; v["x.tradersClients2030"] = d.traders.clients[3];
+    v["x.wlPen2030"] = d.whitelabel.pen[3]; v["x.wlPartners2030"] = d.whitelabel.partners[3]; v["x.gridMult"] = 100; v["x.team2030"] = d.costs.team[3]; v["x.other2030"] = d.costs.otherM[3];
+    return { scenario: "base", fromYear: 2027, toYear: 2031, currency: "USD", view: "gross", lines: clone(d.lines), v: v,
+      gatePass: true, cfeRunsMixed: true, criticalPricing: "fixed", partnerYear: 2028, open: { lines: true, market: true }, showDrivers: false };
+  }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  function modelInput(s) {
+    var d = PantheonModel.defaults(), inp = clone(d);
+    inp.scenario = s.scenario; inp.lines = clone(s.lines);
+    Object.keys(s.v).forEach(function (k) { if (k.indexOf("x.") !== 0 && s.v[k] != null) setPath(inp, k, Number(s.v[k])); });
+    function scale(arr, at, val) { var ref = arr[at] || 1; return arr.map(function (x) { return x * val / ref; }); }
+    inp.bess.share = scale(d.bess.share, 3, s.v["x.bessShare2030"]);
+    inp.plants.pen = d.plants.pen.map(function (x) { return x * s.v["x.plantsPen"] / 100; });
+    inp.critical.pen = scale(d.critical.pen, 3, s.v["x.criticalPen2030"]);
+    inp.traders.clients = scale(d.traders.clients, 3, s.v["x.tradersClients2030"]);
+    inp.whitelabel.pen = scale(d.whitelabel.pen, 3, s.v["x.wlPen2030"]);
+    inp.whitelabel.partners = scale(d.whitelabel.partners, 3, s.v["x.wlPartners2030"]).map(function (x) { return Math.max(1, Math.round(x)); });
+    inp.grid.contractsM = d.grid.contractsM.map(function (x) { return x * s.v["x.gridMult"] / 100; });
+    inp.costs.team = scale(d.costs.team, 3, s.v["x.team2030"]);
+    inp.costs.otherM = scale(d.costs.otherM, 3, s.v["x.other2030"]);
+    inp.market.gatePass = s.gatePass; inp.market.cfeRunsMixed = s.cfeRunsMixed; inp.critical.pricing = s.criticalPricing;
+    inp.floors.partnerYear = Number(s.partnerYear) || 0;
+    return inp;
+  }
+
+  var mstate = null;
+  function mload() {
+    var base = modelBaseUI();
+    try { var raw = window.localStorage.getItem("pantheon.model.v1"); if (raw) { var o = JSON.parse(raw); Object.keys(o).forEach(function (k) { if (k === "v" || k === "lines") Object.assign(base[k], o[k]); else base[k] = o[k]; }); } } catch (e) { /* ignore */ }
+    return base;
+  }
+  function msave() { try { window.localStorage.setItem("pantheon.model.v1", JSON.stringify(mstate)); } catch (e) { /* ignore */ } }
+
+  function fmtVal(kind, v) {
+    switch (kind) {
+      case "gw": return num(v, 1) + " GW";
+      case "kmw": return "$" + num(v, v < 10 ? 1 : 0) + "k/MW";
+      case "k": return "$" + num(v, 0) + "k";
+      case "pct": return num(v, 1) + "%";
+      case "pcty": return (v > 0 ? "+" : "") + num(v, 1) + "%/" + (state.lang === "es" ? "año" : "yr");
+      case "frac": return num(v * 100, 0) + "%";
+      case "fx": return num(v, 1);
+      case "mw": return num(v, 1) + " MW";
+      case "gwh": return num(v, 0) + " GWh";
+      case "usdmwh": return "$" + num(v, 2) + "/MWh";
+      case "musd": return "$" + num(v, 1) + "M";
+      default: return num(v, 0);
+    }
+  }
+  function money2(usd) {
+    var v = mstate.currency === "MXN" ? usd * mstate.v["market.fx"] : usd;
+    var pre = mstate.currency === "MXN" ? "MXN " : "$";
+    var a = Math.abs(v);
+    var s = a >= 1e9 ? num(a / 1e9, 2) + "B" : a >= 1e6 ? num(a / 1e6, a >= 1e8 ? 0 : 1) + "M" : a >= 1e3 ? num(a / 1e3, 0) + "k" : num(a, 0);
+    return (v < 0 ? "−" : "") + pre + s;
+  }
+
+  function mcontrols() {
+    var s = mstate;
+    function group(id, inner) {
+      return '<details class="mgroup" data-g="' + id + '"' + (s.open[id] ? " open" : "") + "><summary>" + esc(mt("g_" + id)) + "</summary><div class=\"mbody\">" + inner + "</div></details>";
+    }
+    function slider(c) {
+      var k = c[0], v = s.v[k];
+      return '<label class="mslider"><span class="ml"><span>' + esc(mt(MLABEL[k])) + '</span><output class="mono" data-out="' + k + '">' + esc(fmtVal(c[4], v)) + "</output></span>" +
+        '<input type="range" min="' + c[1] + '" max="' + c[2] + '" step="' + c[3] + '" value="' + v + '" data-k="' + k + '" data-kind="' + c[4] + '"></label>';
+    }
+    function toggle(k, d) {
+      return '<label class="mtoggle"><input type="checkbox" data-t="' + k + '"' + (s[k] ? " checked" : "") + "><span><span>" + esc(mt(k)) + '</span><span class="small muted">' + esc(mt(d)) + "</span></span></label>";
+    }
+    function sliders(g) { return MCTRL[g].map(slider).join(""); }
+    var yrs = PantheonModel.YEARS;
+    var head = '<div class="mgroup mtop"><div class="mbody">' +
+      '<div class="ml"><span>' + esc(mt("scenario")) + '</span></div><div class="seg mseg" role="group">' + ["bear", "base", "bull"].map(function (x) {
+        return '<button type="button" data-scen="' + x + '" aria-pressed="' + (s.scenario === x) + '">' + esc(mt(x)) + "</button>";
+      }).join("") + "</div>" +
+      '<div class="ml" style="margin-top:12px"><span>' + esc(mt("years")) + '</span></div><div class="row" style="gap:8px;align-items:center">' +
+      '<select data-y="fromYear" aria-label="' + esc(mt("from")) + '">' + yrs.map(function (y) { return "<option" + (s.fromYear === y ? " selected" : "") + ">" + y + "</option>"; }).join("") + "</select>" +
+      '<span class="muted small" style="flex:none">' + esc(mt("to")) + '</span><select data-y="toYear" aria-label="' + esc(mt("to")) + '">' + yrs.map(function (y) { return "<option" + (s.toYear === y ? " selected" : "") + ">" + y + "</option>"; }).join("") + "</select></div></div></div>";
+    var lines = PantheonModel.LINES.map(function (L) {
+      return '<label class="mline"><input type="checkbox" data-line="' + L.id + '"' + (s.lines[L.id] ? " checked" : "") + '><i style="background:' + L.color + '"></i><span>' + L.n + " · " + esc(L[state.lang] || L.en) + "</span></label>";
+    }).join("") + '<div class="row" style="gap:8px;margin-top:6px"><button class="btn sm" type="button" data-lines="all">' + esc(mt("all")) + '</button><button class="btn sm" type="button" data-lines="none">' + esc(mt("none")) + "</button></div>";
+    var crit = '<label class="mslider"><span class="ml"><span>' + esc(mt("criticalPricing")) + '</span></span><select data-sel="criticalPricing"><option value="fixed"' + (s.criticalPricing === "fixed" ? " selected" : "") + ">" + esc(mt("fixed")) + '</option><option value="savings"' + (s.criticalPricing === "savings" ? " selected" : "") + ">" + esc(mt("savings")) + "</option></select></label>";
+    var floorYear = '<label class="mslider"><span class="ml"><span>' + esc(mt("partnerYear")) + '</span></span><select data-sel="partnerYear">' + [0].concat(yrs).map(function (y) {
+      return '<option value="' + y + '"' + (Number(s.partnerYear) === y ? " selected" : "") + ">" + (y ? y : esc(mt("never"))) + "</option>";
+    }).join("") + "</select></label>";
+    return head + group("lines", lines) +
+      group("market", toggle("gatePass", "gatePass_d") + toggle("cfeRunsMixed", "cfeRunsMixed_d") + sliders("market")) +
+      group("bess", sliders("bess")) + group("plants", sliders("plants")) + group("critical", crit + sliders("critical")) +
+      group("traders", sliders("traders")) + group("whitelabel", sliders("whitelabel")) + group("bank", sliders("bank")) +
+      group("floors", floorYear + sliders("floors")) + group("grid", sliders("grid")) + group("qenergy", sliders("qenergy")) +
+      group("net", sliders("net")) + group("costs", sliders("costs"));
+  }
+
+  function mresult(s) { return PantheonModel.run(modelInput(s)); }
+  function series(r) { return mstate.view === "net" ? r.net : r.total; }
+
+  function moutputs() {
+    var s = mstate, r = mresult(s), YRS = r.years;
+    var i0 = YRS.indexOf(s.fromYear), i1 = YRS.indexOf(s.toYear);
+    if (i1 < i0) { var tmp = i0; i0 = i1; i1 = tmp; }
+    var idx = []; for (var i = i0; i <= i1; i++) idx.push(i);
+    var lines = PantheonModel.LINES.filter(function (L) { return s.lines[L.id]; });
+    var ser = series(r), fin = idx[idx.length - 1], first = idx[0];
+    var cum = idx.reduce(function (a, i) { return a + ser[i]; }, 0);
+    var cagr = idx.length > 1 && ser[first] > 0 ? (Math.pow(ser[fin] / ser[first], 1 / (idx.length - 1)) - 1) * 100 : null;
+    var i2030 = YRS.indexOf(2030);
+    var kp = '<div class="row">' +
+      kpi(mt("k_rev") + " " + YRS[fin], money2(ser[fin]), esc(s.view === "net" ? mt("net") : mt("gross"))) +
+      kpi(mt("k_cum") + " " + YRS[first] + "–" + YRS[fin], money2(cum), "") +
+      kpi(mt("k_cagr"), cagr == null ? "—" : num(cagr, 0) + "%", YRS[first] + "–" + YRS[fin]) +
+      kpi(mt("k_ebitda") + " " + YRS[fin], money2(r.ebitda[fin]), num(r.total[fin] ? r.ebitda[fin] / r.total[fin] * 100 : 0, 0) + "% " + esc(mt("margin"))) +
+      kpi(mt("k_mw") + " " + YRS[fin], num(s.lines.bess ? r.bessMW[fin] : 0, 0) + " MW", "") +
+      kpi(mt("k_target"), (r.total[i2030] >= 30e6 ? '<span class="ok">' : '<span class="warn">') + (r.total[i2030] >= 30e6 ? "+" : "−") + money2(Math.abs(r.total[i2030] - 30e6)) + "</span>", money2(r.total[i2030]) + " · 2030") + "</div>";
+
+    // Stacked bars
+    var W = 760, H = 330, L = 64, R = 16, T = 24, B = 40, ih = H - T - B, n = idx.length;
+    var lineVals = function (L1, i) { var v = r.lines[L1.id][i]; return s.view === "net" && r.total[i] ? v * r.net[i] / r.total[i] : v; };
+    var maxV = Math.max(30e6 * 1.08, Math.max.apply(null, idx.map(function (i) { return ser[i]; })) * 1.12, 1);
+    var step = maxV > 60e6 ? 20e6 : maxV > 25e6 ? 10e6 : maxV > 10e6 ? 5e6 : 2e6;
+    var y = function (v) { return T + ih - v / maxV * ih; };
+    var bw = (W - L - R) / n, barw = Math.min(90, bw * 0.56);
+    var grid = ""; for (var g = 0; g <= maxV; g += step) grid += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(g) + '" y2="' + y(g) + '" stroke="var(--line-subtle)"/><text x="' + (L - 8) + '" y="' + (y(g) + 4) + '" text-anchor="end" font-size="11" fill="var(--ink-muted)" class="mono">' + esc(money2(g)) + "</text>";
+    var bars = idx.map(function (i, j) {
+      var x = L + j * bw + (bw - barw) / 2, acc = 0;
+      var segs = lines.map(function (L1) {
+        var v = lineVals(L1, i); if (v <= 0) return "";
+        var y1 = y(acc + v), h = y(acc) - y1; acc += v;
+        return '<rect x="' + x.toFixed(1) + '" y="' + y1.toFixed(1) + '" width="' + barw.toFixed(1) + '" height="' + Math.max(0, h).toFixed(1) + '" fill="' + L1.color + '"><title>' + esc(L1[state.lang] || L1.en) + " " + YRS[i] + ": " + esc(money2(v)) + "</title></rect>";
+      }).join("");
+      var ebd = s.view === "gross" ? '<circle cx="' + (x + barw / 2).toFixed(1) + '" cy="' + y(Math.max(0, r.ebitda[i])).toFixed(1) + '" r="4.5" fill="var(--bg-000)" stroke="var(--ink)" stroke-width="2"><title>EBITDA ' + YRS[i] + ": " + esc(money2(r.ebitda[i])) + "</title></circle>" : "";
+      return segs + ebd + '<text x="' + (x + barw / 2).toFixed(1) + '" y="' + (y(acc) - 8).toFixed(1) + '" text-anchor="middle" font-size="12" fill="var(--ink)" class="mono">' + esc(money2(acc)) + "</text>" +
+        '<text x="' + (x + barw / 2).toFixed(1) + '" y="' + (H - 14) + '" text-anchor="middle" font-size="12" fill="var(--ink-3)">' + YRS[i] + "</text>";
+    }).join("");
+    var tgt = idx.indexOf(i2030) >= 0 ? '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(30e6) + '" y2="' + y(30e6) + '" stroke="var(--peak)" stroke-dasharray="5 5"/><text x="' + (L + 6) + '" y="' + (y(30e6) - 6) + '" font-size="11" fill="var(--peak)">' + esc(mt("chart_target")) + "</text>" : "";
+    var legend = '<div class="mlegend">' + lines.map(function (L1) { return '<span><i style="background:' + L1.color + '"></i>' + L1.n + " · " + esc(L1[state.lang] || L1.en) + "</span>"; }).join("") +
+      (s.view === "gross" ? '<span><i style="background:var(--bg-000);border:2px solid var(--ink);border-radius:50%"></i>' + esc(mt("ebitda_dots")) + "</span>" : "") + "</div>";
+    var chart = '<section class="card"><h2>' + esc(mt("chart_t")) + '</h2><svg viewBox="0 0 ' + W + " " + H + '" style="width:100%;height:auto" role="img" aria-label="' + esc(mt("chart_t")) + '">' + grid + tgt + bars + "</svg>" + legend + "</section>";
+
+    // Table
+    var th = "<tr><th></th>" + idx.map(function (i) { return '<th class="mono" style="text-align:right">' + YRS[i] + "</th>"; }).join("") + '<th class="mono" style="text-align:right">' + YRS[first] + "–" + YRS[fin] + "</th></tr>";
+    var rowOf = function (label, arr, cls, sw) {
+      return '<tr class="' + (cls || "") + '"><td>' + (sw ? '<i class="sw" style="background:' + sw + '"></i>' : "") + esc(label) + "</td>" + idx.map(function (i) { return '<td class="mono" style="text-align:right">' + esc(money2(arr[i])) + "</td>"; }).join("") +
+        '<td class="mono" style="text-align:right">' + esc(money2(idx.reduce(function (a, i) { return a + arr[i]; }, 0))) + "</td></tr>";
+    };
+    var drvRow = function (L1) {
+      var d = r.drivers[L1.id]; if (!d || !s.showDrivers) return "";
+      return '<tr class="drv"><td class="small muted">' + esc(mt("vol")) + " · " + esc(mt("price")) + "</td>" + idx.map(function (i) {
+        var x = d[i]; var u = mt("units_" + x.unit); if (u.indexOf("units_") === 0) u = x.unit;
+        return '<td class="small muted mono" style="text-align:right">' + num(x.volume, x.volume < 20 ? 1 : 0) + " " + esc(u) + (x.price != null ? "<br>" + esc(money2(x.price)) : "") + "</td>";
+      }).join("") + "<td></td></tr>";
+    };
+    var tb = lines.map(function (L1) { return rowOf(L1.n + " · " + (L1[state.lang] || L1.en), r.lines[L1.id], "", L1.color) + drvRow(L1); }).join("") +
+      rowOf(mt("total"), r.total, "tot") + rowOf(mt("net_row"), r.net, "") + rowOf(mt("costs_row"), r.costs.map(function (v) { return -v; }), "") + rowOf(mt("ebitda_row"), r.ebitda, "tot");
+    var table = '<section class="card"><div class="head" style="align-items:center"><h2>' + esc(mt("table_t")) + '</h2><label class="mtoggle" style="flex:none"><input type="checkbox" data-t="showDrivers"' + (s.showDrivers ? " checked" : "") + "><span>" + esc(mt("drivers")) + '</span></label></div><div class="tablewrap"><table class="mtable"><thead>' + th + "</thead><tbody>" + tb + "</tbody></table></div></section>";
+
+    // Sensitivity (tornado) on the final selected year
+    var keys = [["x.bessShare2030", "bessShare", "1"], ["bess.feePct", "feePct", "1"], ["market.capPriceK", "capPriceK", ""], ["bess.arbitrageK", "arbitrageK", "1"], ["market.conv2GW", "conv2GW", ""],
+      ["whitelabel.priceK", "wlPrice", "5"], ["x.wlPen2030", "wlPen", "5"], ["plants.priceK", "plantsPrice", "2"], ["x.criticalPen2030", "criticalPen", "3"], ["traders.priceK", "tradersPrice", "4"],
+      ["x.team2030", "team2030", ""]];
+    var baseV = ser[fin];
+    var sens = keys.map(function (k) {
+      var lo = clone(s), hi = clone(s); lo.v[k[0]] = s.v[k[0]] * 0.8; hi.v[k[0]] = s.v[k[0]] * 1.2;
+      var a = series(mresult(lo))[fin], b = series(mresult(hi))[fin];
+      return { k: k[1], p: k[2], lo: Math.min(a, b) - baseV, hi: Math.max(a, b) - baseV };
+    }).filter(function (x) { return Math.abs(x.hi) + Math.abs(x.lo) > 1; }).sort(function (a, b) { return (b.hi - b.lo) - (a.hi - a.lo); });
+    var sm = Math.max.apply(null, sens.map(function (x) { return Math.max(Math.abs(x.lo), Math.abs(x.hi)); }).concat([1]));
+    var sW = 760, sL = 300, sHalf = (sW - sL - 150) / 2, sMid = sL + 75 + sHalf, rh = 26, sH = sens.length * rh + 20;
+    var srows = sens.map(function (x, j) {
+      var yy = 10 + j * rh;
+      return '<text x="' + (sL - 10) + '" y="' + (yy + 13) + '" text-anchor="end" font-size="12" fill="var(--ink-2)">' + esc((x.p ? x.p + " · " : "") + mt(x.k)) + "</text>" +
+        '<rect x="' + (sMid + x.lo / sm * sHalf).toFixed(1) + '" y="' + (yy + 2) + '" width="' + (-x.lo / sm * sHalf).toFixed(1) + '" height="16" fill="var(--critical)" opacity=".75"/>' +
+        '<rect x="' + sMid + '" y="' + (yy + 2) + '" width="' + (x.hi / sm * sHalf).toFixed(1) + '" height="16" fill="var(--good)" opacity=".75"/>' +
+        '<text x="' + (sMid + x.lo / sm * sHalf - 6).toFixed(1) + '" y="' + (yy + 14) + '" text-anchor="end" font-size="11" fill="var(--ink-muted)" class="mono">' + esc(money2(x.lo)) + "</text>" +
+        '<text x="' + (sMid + x.hi / sm * sHalf + 6).toFixed(1) + '" y="' + (yy + 14) + '" font-size="11" fill="var(--ink-muted)" class="mono">' + (x.hi >= 0 ? "+" : "") + esc(money2(x.hi)) + "</text>";
+    }).join("");
+    var sensCard = '<section class="card"><h2>' + esc(mt("sens_t").replace("{year}", YRS[fin])) + '</h2><p class="small muted" style="margin:0">' + esc(mt("sens_d")) + "</p>" +
+      '<svg viewBox="0 0 ' + sW + " " + sH + '" style="width:100%;height:auto" role="img" aria-label="' + esc(mt("sens_t").replace("{year}", YRS[fin])) + '"><line x1="' + sMid + '" x2="' + sMid + '" y1="4" y2="' + (sH - 4) + '" stroke="var(--line-control)"/>' + srows + "</svg></section>";
+
+    // Scenarios + mix
+    var scen = ["bear", "base", "bull"].map(function (x) { var c = clone(s); c.scenario = x; return { x: x, v: series(mresult(c))[fin] }; });
+    var smax = Math.max.apply(null, scen.map(function (z) { return z.v; }).concat([1]));
+    var scenCard = '<section class="card"><h2>' + esc(mt("scen_t").replace("{year}", YRS[fin])) + "</h2>" + scen.map(function (z) {
+      return '<div class="mbar"><span class="small">' + esc(mt(z.x)) + '</span><span class="track"><i style="width:' + (z.v / smax * 100).toFixed(1) + "%;background:" + (z.x === s.scenario ? "var(--peak)" : "var(--neutral-mark)") + '"></i></span><span class="mono small">' + esc(money2(z.v)) + "</span></div>";
+    }).join("") + "</section>";
+    var tot = lines.reduce(function (a, L1) { return a + r.lines[L1.id][fin]; }, 0) || 1;
+    var mix = '<section class="card"><h2>' + esc(mt("mix_t").replace("{year}", YRS[fin])) + "</h2>" + lines.slice().sort(function (a, b) { return r.lines[b.id][fin] - r.lines[a.id][fin]; }).map(function (L1) {
+      var v = r.lines[L1.id][fin];
+      return '<div class="mbar"><span class="small">' + L1.n + " · " + esc(L1[state.lang] || L1.en) + '</span><span class="track"><i style="width:' + (v / tot * 100).toFixed(1) + "%;background:" + L1.color + '"></i></span><span class="mono small">' + num(v / tot * 100, 0) + "%</span></div>";
+    }).join("") + "</section>";
+
+    var notes = '<section class="card"><h2>' + esc(mt("notes_t")) + '</h2><ul class="small" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">' + mt("notes").map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></section>";
+    return kp + chart + '<div class="row" style="align-items:stretch">' + scenCard + mix + "</div>" + sensCard + table + notes;
+  }
+
+  function mcsv() {
+    var s = mstate, r = mresult(s), YRS = r.years, rows = [["line"].concat(YRS)];
+    PantheonModel.LINES.forEach(function (L1) { if (s.lines[L1.id]) rows.push([L1.n + " " + L1.en].concat(r.lines[L1.id].map(Math.round))); });
+    rows.push(["Total"].concat(r.total.map(Math.round)), ["Net to Genau"].concat(r.net.map(Math.round)), ["Costs"].concat(r.costs.map(Math.round)), ["EBITDA"].concat(r.ebitda.map(Math.round)), ["Battery MW"].concat(r.bessMW.map(Math.round)));
+    rows.push([], ["scenario", s.scenario], ["currency", "USD"]);
+    Object.keys(s.v).forEach(function (k) { rows.push([k, s.v[k]]); });
+    ["gatePass", "cfeRunsMixed", "criticalPricing", "partnerYear"].forEach(function (k) { rows.push([k, s[k]]); });
+    var csv = rows.map(function (r1) { return r1.join(","); }).join("\n");
+    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "genau-revenue-model-" + s.scenario + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  function modelPage() {
+    if (!can("business.read")) { return api("/v1/alerts").then(function (a) { frame("model", '<div class="card"><h2>' + esc(t("no_access")) + "</h2></div>", a.length); }); }
+    if (!window.PantheonModel) { return Promise.reject({ message: "Model not loaded" }); }
+    return api("/v1/alerts").then(function (al) {
+      if (!mstate) mstate = mload();
+      var s = mstate;
+      frame("model",
+        '<div class="head"><div><h1 class="title">' + esc(mt("title")) + '</h1><p class="muted" style="margin:4px 0 0">' + esc(mt("lede")) + "</p></div>" +
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">' +
+        '<div class="seg" role="group" aria-label="' + esc(mt("view")) + '"><button type="button" data-mview="gross" aria-pressed="' + (s.view === "gross") + '">' + esc(mt("gross")) + '</button><button type="button" data-mview="net" aria-pressed="' + (s.view === "net") + '">' + esc(mt("net")) + "</button></div>" +
+        '<div class="seg" role="group" aria-label="' + esc(mt("currency")) + '"><button type="button" data-mcur="USD" aria-pressed="' + (s.currency === "USD") + '">USD</button><button type="button" data-mcur="MXN" aria-pressed="' + (s.currency === "MXN") + '">MXN</button></div>' +
+        '<button class="btn" type="button" data-mact="csv">' + esc(mt("csv")) + '</button><button class="btn" type="button" data-mact="reset">' + esc(mt("reset")) + "</button></div></div>" +
+        '<div class="mgrid"><aside class="mctrl" id="mctrl">' + mcontrols() + '</aside><div class="mout" id="mout">' + moutputs() + "</div></div>", al.length);
+      var ctrl = document.getElementById("mctrl"), out = document.getElementById("mout");
+      var raf = null;
+      function redraw() { if (raf) cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { out.innerHTML = moutputs(); msave(); }); }
+      ctrl.addEventListener("input", function (e) {
+        var el = e.target;
+        if (el.dataset.k) { s.v[el.dataset.k] = Number(el.value); var o = ctrl.querySelector('[data-out="' + el.dataset.k + '"]'); if (o) o.textContent = fmtVal(el.dataset.kind, Number(el.value)); redraw(); }
+      });
+      ctrl.addEventListener("change", function (e) {
+        var el = e.target;
+        if (el.dataset.line) { s.lines[el.dataset.line] = el.checked; redraw(); }
+        else if (el.dataset.t) { s[el.dataset.t] = el.checked; redraw(); }
+        else if (el.dataset.sel) { s[el.dataset.sel] = el.value; redraw(); }
+        else if (el.dataset.y) { s[el.dataset.y] = Number(el.value); redraw(); }
+      });
+      ctrl.addEventListener("toggle", function (e) { var d = e.target; if (d.dataset && d.dataset.g) { s.open[d.dataset.g] = d.open; msave(); } }, true);
+      ctrl.addEventListener("click", function (e) {
+        var b = e.target.closest("button"); if (!b) return;
+        if (b.dataset.scen) { s.scenario = b.dataset.scen; ctrl.querySelectorAll("[data-scen]").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.scen === s.scenario)); }); redraw(); }
+        if (b.dataset.lines) { var on = b.dataset.lines === "all"; Object.keys(s.lines).forEach(function (k) { s.lines[k] = on; }); ctrl.querySelectorAll("[data-line]").forEach(function (x) { x.checked = on; }); redraw(); }
+      });
+      out.addEventListener("change", function (e) { if (e.target.dataset.t === "showDrivers") { s.showDrivers = e.target.checked; redraw(); } });
+      app.querySelectorAll("[data-mview],[data-mcur],[data-mact]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          if (b.dataset.mview) s.view = b.dataset.mview;
+          if (b.dataset.mcur) s.currency = b.dataset.mcur;
+          if (b.dataset.mact === "csv") { mcsv(); return; }
+          if (b.dataset.mact === "reset") { mstate = modelBaseUI(); msave(); }
+          msave(); route();
+        });
+      });
     });
   }
 
@@ -768,7 +1130,7 @@
     var parts = (location.hash || "#/home").replace(/^#\/?/, "").split("/");
     return { name: parts[0] || "home", arg: parts[1] };
   }
-  var PAGES = { home: homePage, yesterday: yesterdayPage, today: todayPage, alerts: alertsPage, settlement: settlementPage, fleet: fleetPage, audit: auditPage, lines: linesPage, plan: planPage };
+  var PAGES = { home: homePage, yesterday: yesterdayPage, today: todayPage, alerts: alertsPage, settlement: settlementPage, fleet: fleetPage, audit: auditPage, lines: linesPage, plan: planPage, model: modelPage };
 
   function route() {
     stopReplay();

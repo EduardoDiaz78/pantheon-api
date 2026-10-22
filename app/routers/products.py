@@ -266,12 +266,12 @@ _BY_ID = {d["id"]: d for d in LINES}
 TOTAL_2030 = sum(d["arr"] for d in LINES)
 
 RAMP = [
-    (2027, 1_500_000, [{"en": "QEnergy book and Acueducto live", "es": "Cartera de QEnergy y Acueducto en vivo"},
+    (2027, 1_400_000, [{"en": "QEnergy book and Acueducto live", "es": "Cartera de QEnergy y Acueducto en vivo"},
                        {"en": "First 100–200 MW of batteries", "es": "Primeros 100–200 MW de baterías"},
                        {"en": "3–5 suppliers on forecasts; first bankability reports", "es": "3–5 suministradores con pronósticos; primeros reportes de bancabilidad"}]),
-    (2028, 8_000_000, [{"en": "400 MW of batteries; 1 GW of plant forecasting", "es": "400 MW de baterías; 1 GW de pronóstico para plantas"},
+    (2028, 8_500_000, [{"en": "400 MW of batteries; 1 GW of plant forecasting", "es": "400 MW de baterías; 1 GW de pronóstico para plantas"},
                        {"en": "100 critical-hour sites; floor partner signed", "es": "100 sitios de horas críticas; socio de pisos firmado"}]),
-    (2029, 18_000_000, [{"en": "700 MW of batteries; 2 GW of plants", "es": "700 MW de baterías; 2 GW de plantas"},
+    (2029, 19_100_000, [{"en": "700 MW of batteries; 2 GW of plants", "es": "700 MW de baterías; 2 GW de plantas"},
                         {"en": "White-label partners; first grid contract", "es": "Socios de marca blanca; primer contrato de red"}]),
     (2030, TOTAL_2030, [{"en": "1 GW of batteries; 3 GW of plants; 250 sites", "es": "1 GW de baterías; 3 GW de plantas; 250 sitios"},
                         {"en": "15 supplier and trader clients", "es": "15 clientes suministradores y comercializadores"}]),
