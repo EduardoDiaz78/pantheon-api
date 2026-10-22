@@ -476,5 +476,5 @@ def test_products_list_and_detail(client):
 def test_business_plan_admin_only_and_adds_up(client):
     assert client.get("/v1/business/plan", headers=MANAGER).status_code == 403
     p = client.get("/v1/business/plan", headers=ADMIN).json()
-    assert round(sum(l["arr_2030_usd"] for l in p["lines"])) == p["target_arr_usd"] == 30_000_000
-    assert p["ramp"][-1]["arr_usd"] == 30_000_000 and p["lines"][0]["id"] == "battery-optimization"
+    assert round(sum(l["arr_2030_usd"] for l in p["lines"])) == p["target_arr_usd"] == 33_800_000
+    assert p["ramp"][-1]["arr_usd"] == 33_800_000 and p["lines"][0]["id"] == "battery-optimization"

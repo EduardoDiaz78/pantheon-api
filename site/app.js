@@ -638,7 +638,7 @@
     pf_title: "Atotonilco, 11–29 September", pf_realized: "Realized, fixed daily offer", pf_forecast: "With our forecasts", pf_target: "Target after 3 months", pf_max: "Theoretical maximum",
     pf_day: "A typical day, 21 September", pf_trader_mtr: "Settled at real-time prices, fixed offer", pf_fc_mtr: "Same, with our forecasts",
     ch_title: "Tomorrow’s likely critical hours", ch_hour: "Hour",
-    plan_title: "The path to $30M a year in Mexico", plan_lede: "2030 annual recurring revenue by product line. Planning estimates, not contracted revenue.",
+    plan_title: "The path to {total} a year in Mexico", plan_lede: "2030 annual recurring revenue by product line. Planning estimates, not contracted revenue.",
     plan_total: "Target 2030", plan_lines: "Revenue by line, 2030", plan_ramp: "How it ramps", plan_gate: "The gate", plan_cond: "What must be true",
     usd_m: "USD M"
   });
@@ -652,7 +652,7 @@
     pf_title: "Atotonilco, 11–29 de septiembre", pf_realized: "Realizado, oferta fija diaria", pf_forecast: "Con nuestros pronósticos", pf_target: "Meta a 3 meses", pf_max: "Máximo teórico",
     pf_day: "Un día típico, 21 de septiembre", pf_trader_mtr: "Liquidado a precio de tiempo real, oferta fija", pf_fc_mtr: "Lo mismo, con nuestros pronósticos",
     ch_title: "Horas críticas probables de mañana", ch_hour: "Hora",
-    plan_title: "El camino a 30 millones de dólares al año en México", plan_lede: "Ingreso recurrente anual 2030 por línea de producto. Estimaciones de planeación, no ingresos contratados.",
+    plan_title: "El camino a {total} al año en México", plan_lede: "Ingreso recurrente anual 2030 por línea de producto. Estimaciones de planeación, no ingresos contratados.",
     plan_total: "Meta 2030", plan_lines: "Ingreso por línea, 2030", plan_ramp: "Cómo crece", plan_gate: "La compuerta", plan_cond: "Lo que debe cumplirse",
     usd_m: "M USD"
   });
@@ -738,7 +738,7 @@
           '<ul class="small" style="margin:0;padding-left:18px">' + y.milestones.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></div>";
       }).join("");
       frame("plan",
-        '<div class="head"><div><h1 class="title">' + esc(t("plan_title")) + '</h1><p class="muted" style="margin:4px 0 0">' + esc(t("plan_lede")) + "</p></div></div>" +
+        '<div class="head"><div><h1 class="title">' + esc(fmtT("plan_title", { total: m(total) })) + '</h1><p class="muted" style="margin:4px 0 0">' + esc(t("plan_lede")) + "</p></div></div>" +
         '<div class="row">' + kpi(t("plan_total"), m(total), esc(p.note), "") + "</div>" +
         '<section class="card"><h2>' + esc(t("plan_lines")) + "</h2>" + bars + "</section>" +
         '<div class="banner" style="background:var(--peak-tint);border:1px solid var(--peak)"><strong>' + esc(t("plan_gate")) + "</strong><span>" + esc(p.gate) + "</span></div>" +

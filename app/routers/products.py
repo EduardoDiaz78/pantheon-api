@@ -166,20 +166,22 @@ LINES: list[dict] = [
         sample={"book_mw": 100, "book_gwh": [250, 350], "value_usd_per_year": [250_000, 900_000]},
     ),
     dict(
-        id="white-label", number=5, status="planned", arr=3_200_000,
-        basis={"en": "400 MW at about $8k per MW", "es": "400 MW a unos $8 mil USD por MW"},
+        id="white-label", number=5, status="planned", arr=7_000_000,
+        basis={"en": "400 MW at about $17.5k per MW", "es": "400 MW a unos $17.5 mil USD por MW"},
         name={"en": "Factory batteries, white-label", "es": "Baterías industriales, marca blanca"},
         buyer={"en": "Installers of batteries at factories and commercial sites; self-supply projects of 0.7–20 MW",
                "es": "Instaladores de baterías en fábricas y comercios; proyectos de autoconsumo de 0.7–20 MW"},
         offer={"en": "Our engine inside their product, under their brand: peak shaving, critical hours, solar shifting",
                "es": "Nuestro motor dentro de su producto, con su marca: recorte de picos, horas críticas, desplazamiento solar"},
-        price={"en": "About $8k per installed MW a year", "es": "Unos $8 mil USD por MW instalado al año"},
+        price={"en": "About $17.5k per installed MW a year, or 12% of verified savings; $12k per MW above 100 MW",
+               "es": "Unos $17.5 mil USD por MW instalado al año, o 12% del ahorro verificado; $12 mil por MW arriba de 100 MW"},
         headline={"en": "New self-supply rules open projects of 0.7–20 MW to industrial users",
                   "es": "Las nuevas reglas de autoconsumo abren proyectos de 0.7–20 MW a usuarios industriales"},
         first_customers=[{"en": "Integrators competing with Quartux", "es": "Integradores que compiten con Quartux"},
                          {"en": "Equipment suppliers without their own software", "es": "Proveedores de equipo sin software propio"}],
         needs=[{"en": "A partner API and programme", "es": "Una API y un programa para socios"}],
-        metrics=[("target_mw", 400, {"en": "MW under licence, 2030", "es": "MW bajo licencia, 2030"}),
+        metrics=[("owner_saving_usd_per_mw", "80–150k", {"en": "USD per MW a year a well-run battery saves its owner", "es": "USD por MW al año que ahorra al dueño una batería bien operada"}),
+                 ("target_mw", 400, {"en": "MW under licence, 2030", "es": "MW bajo licencia, 2030"}),
                  ("partners", "3–5", {"en": "integrator partners", "es": "socios integradores"})],
         sample={"partner": "[INTEGRATOR]", "sites": 12, "mw": 18.5},
     ),
@@ -250,6 +252,7 @@ LINES: list[dict] = [
     ),
 ]
 _BY_ID = {d["id"]: d for d in LINES}
+TOTAL_2030 = sum(d["arr"] for d in LINES)
 
 RAMP = [
     (2027, 1_500_000, [{"en": "QEnergy book and Acueducto live", "es": "Cartera de QEnergy y Acueducto en vivo"},
@@ -259,7 +262,7 @@ RAMP = [
                        {"en": "100 critical-hour sites; floor partner signed", "es": "100 sitios de horas críticas; socio de pisos firmado"}]),
     (2029, 18_000_000, [{"en": "700 MW of batteries; 2 GW of plants", "es": "700 MW de baterías; 2 GW de plantas"},
                         {"en": "White-label partners; first grid contract", "es": "Socios de marca blanca; primer contrato de red"}]),
-    (2030, 30_000_000, [{"en": "1 GW of batteries; 3 GW of plants; 250 sites", "es": "1 GW de baterías; 3 GW de plantas; 250 sitios"},
+    (2030, TOTAL_2030, [{"en": "1 GW of batteries; 3 GW of plants; 250 sites", "es": "1 GW de baterías; 3 GW de plantas; 250 sitios"},
                         {"en": "15 supplier and trader clients", "es": "15 clientes suministradores y comercializadores"}]),
 ]
 
@@ -299,7 +302,7 @@ def one_product(product_id: str, _: Caller = Depends(current), lang: str = Depen
 def business_plan(_: Caller = Depends(need("business.read")), lang: str = Depends(get_lang)) -> BusinessPlan:
     es = lang == "es"
     return BusinessPlan(
-        target_arr_usd=30_000_000, target_year=2030,
+        target_arr_usd=TOTAL_2030, target_year=2030,
         lines=[PlanLine(id=d["id"], number=d["number"], name=_t(d["name"], lang), arr_2030_usd=d["arr"], basis=_t(d["basis"], lang))
                for d in sorted(LINES, key=lambda d: -d["arr"])],
         ramp=[PlanYear(year=y, arr_usd=a, milestones=_tl(m, lang)) for y, a, m in RAMP],
