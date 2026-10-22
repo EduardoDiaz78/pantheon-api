@@ -634,3 +634,16 @@ def test_calendars_down_then_retried(qclient):
     FakeCalendar.DOWN = False
     assert c.post("/v1/qenergy/anchors/refresh", headers=ENGINE).json()["stamped"] == 1
     assert c.get(url, headers=QENERGY).json()["anchor"]["status"] == "pending"
+
+
+def test_anchor_board(qclient):
+    c = qclient
+    c.post("/v1/qenergy/sites/atotonilco/forecasts/2027-03-02", json=_fc(), headers=ENGINE)
+    b = c.get("/v1/qenergy/sites/atotonilco/anchors", headers=QENERGY).json()
+    assert b["enabled"] and b["counts"]["pending"] == 1 and b["counts"]["sample"] == 7
+    top = b["versions"][0]
+    assert top["day"] == "2027-03-02" and top["status"] == "pending" and top["on_time"] and top["proof_url"]
+    assert c.get(top["canonical_url"], headers=QENERGY).status_code == 200
+    late = c.get("/v1/qenergy/sites/atotonilco/anchors", headers=QENERGY).json()["versions"]
+    assert all(v["status"] == "sample" and not v["proof_url"] for v in late if v["sample"])
+    assert c.get("/v1/qenergy/sites/atotonilco/anchors", headers=ENGINE).status_code == 403

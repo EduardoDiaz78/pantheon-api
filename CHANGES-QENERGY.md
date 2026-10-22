@@ -41,6 +41,9 @@ proof points at a Bitcoin block. Only the hash leaves Pantheon, never the foreca
 - `GET …/forecasts/{day}/proof.ots?version=N` downloads the proof; `GET …/forecasts/{day}/canonical?version=N` the exact bytes.
 - Anyone can check without trusting Genau: `ots verify -f forecast.json forecast.json.ots`, or drop both files on opentimestamps.org.
   A Bitcoin block mined before 10:00 the day before delivery proves the forecast existed before the market cleared.
+- **Timestamps page** on the Pantheon site (admin and QEnergy): counts, progress bar, the latest forecast step by step
+  (received → fingerprinted → sent → in a Bitcoin block), every version with deadline, status and block link, an in-browser
+  SHA-256 check, and downloads of each proof and forecast. Data: `GET /v1/qenergy/sites/{site}/anchors`.
 - `POST /v1/qenergy/anchors/refresh` (engine or admin) stamps anything missed and completes pending proofs; the API also
   does this itself every 30 minutes while awake. Sample data is never stamped. `PANTHEON_OTS=false` switches it off.
 

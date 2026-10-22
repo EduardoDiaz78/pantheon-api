@@ -226,6 +226,56 @@ def refresh_loop(every_s: int = 1800) -> None:
     threading.Thread(target=run, daemon=True, name="btc-anchor-refresh").start()
 
 
+class AnchorRow(BaseModel):
+    day: date
+    version: int
+    sha256: str
+    received_at: str
+    on_time: bool = Field(description="Received before 10:00 Mexico City time the day before (the day-ahead offer deadline)")
+    model_version: str
+    posted_by: str
+    sample: bool
+    status: Literal["sample", "queued", "pending", "bitcoin", "failed", "off"]
+    block_height: Optional[int] = None
+    stamped_at: Optional[str] = None
+    checked_at: Optional[str] = None
+    error: Optional[str] = None
+    proof_url: Optional[str] = None
+    canonical_url: str
+
+
+class AnchorBoard(BaseModel):
+    site: str
+    enabled: bool
+    calendars: list[str]
+    counts: dict[str, int]
+    versions: list[AnchorRow]
+
+
+def _deadline_utc(day: date) -> str:
+    # 10:00 the day before in Mexico City (UTC−6 all year since 2022) = 16:00 UTC the day before
+    return (day - timedelta(days=1)).isoformat() + "T16:00:00+00:00"
+
+
+@router.get("/sites/{site_id}/anchors", response_model=AnchorBoard, summary="Bitcoin timestamp progress for every forecast version")
+def anchor_board(site_id: str, _: Caller = Depends(need("qenergy.read")), store: QStore = Depends(get_qstore)) -> AnchorBoard:
+    site_or_404(site_id)
+    on = btc.enabled()
+    out, counts = [], {k: 0 for k in ("bitcoin", "pending", "queued", "failed", "sample", "off")}
+    for r in store.versions(site_id):
+        d = date.fromisoformat(r["day"])
+        st = "sample" if r["sample"] else (r["status"] or ("queued" if on else "off"))
+        counts[st] += 1
+        base = f"/v1/qenergy/sites/{site_id}/forecasts/{d}"
+        out.append(AnchorRow(day=d, version=r["version"], sha256=r["sha256"], received_at=r["received_at"],
+                             on_time=r["received_at"] < _deadline_utc(d), model_version=r["model_version"], posted_by=r["posted_by"],
+                             sample=bool(r["sample"]), status=st, block_height=r["block_height"], stamped_at=r["stamped_at"],
+                             checked_at=r["checked_at"], error=r["error"],
+                             proof_url=f"{base}/proof.ots?version={r['version']}" if r["has_proof"] else None,
+                             canonical_url=f"{base}/canonical?version={r['version']}"))
+    return AnchorBoard(site=site_id, enabled=on, calendars=btc.CALENDARS, counts=counts, versions=out)
+
+
 @router.post("/anchors/refresh", summary="Stamp any forecast not yet sent and complete pending Bitcoin proofs (run hourly)")
 def refresh_anchors(_: Caller = Depends(need("forecast.write")), store: QStore = Depends(get_qstore)) -> dict:
     return _refresh(store)

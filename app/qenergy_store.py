@@ -87,6 +87,15 @@ class QStore:
                                (site, day.isoformat())).fetchall()
         return [{"version": i + 1, **dict(r)} for i, r in enumerate(rows)]
 
+    def versions(self, site: str) -> list[dict]:
+        """Every forecast version for a plant, newest first, with its Bitcoin anchor status."""
+        rows = self.db.execute("""SELECT f.id, f.day, f.sha256, f.received_at, f.posted_by, f.model_version, f.sample,
+                                         a.status, a.block_height, a.stamped_at, a.checked_at, a.error, a.ots IS NOT NULL has_proof,
+                                         (SELECT COUNT(*) FROM forecasts g WHERE g.site=f.site AND g.day=f.day AND g.id<=f.id) version
+                                  FROM forecasts f LEFT JOIN anchors a ON a.forecast_id = f.id WHERE f.site=? ORDER BY f.day DESC, f.id DESC""",
+                               (site,)).fetchall()
+        return [dict(r) for r in rows]
+
     # ---------- Bitcoin anchors (see anchor.py) ----------
     def set_anchor(self, forecast_id: int, sha256: str, ots: bytes | None, status: str, block_height: int | None = None,
                    error: str | None = None, stamped: bool = False) -> None:

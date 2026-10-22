@@ -197,6 +197,7 @@
     var links = partner ? [] : [["home", t("nav_home")], ["yesterday", t("nav_yesterday")], ["today", t("nav_today")], ["alerts", t("nav_alerts")], ["settlement", t("nav_settlement")], ["fleet", t("nav_fleet")]];
     if (!partner) links.push(["lines", t("nav_lines")]);
     if (can("qenergy.read")) links.push(["qenergy", t("nav_qenergy")]);
+    if (can("qenergy.read")) links.push(["timestamps", t("nav_ts")]);
     if (can("audit.read")) links.push(["audit", t("nav_audit")]);
     if (can("business.read")) links.push(["plan", t("nav_plan")]);
     if (can("business.read")) links.push(["model", mt("nav_model")]);
@@ -1245,19 +1246,172 @@
     });
   }
 
+
+  // ---------- Bitcoin timestamps (OpenTimestamps) ----------
+  Object.assign(T.en, {
+    nav_ts: "Timestamps", ts_eyebrow: "Víspera record · {site}", ts_title: "Bitcoin timestamps",
+    ts_lede: "Every forecast's SHA-256 fingerprint is anchored in the Bitcoin blockchain through OpenTimestamps. Once a block confirms it, nobody, Genau included, can change that forecast without it showing.",
+    ts_k_btc: "In a Bitcoin block", ts_k_pend: "Waiting for a block", ts_k_queue: "Being sent", ts_k_fail: "Needs a retry",
+    ts_k_btc_c: "Proven, checkable by anyone", ts_k_pend_c: "Calendars hold it; usually a few hours", ts_k_queue_c: "Sent seconds after arrival", ts_k_fail_c: "Retried every 30 minutes",
+    ts_progress: "Progress", ts_of: "{n} of {t} real forecasts anchored", ts_samples: "{n} sample forecasts are never stamped.",
+    ts_latest: "Latest forecast, step by step", ts_none: "No real forecast yet. The sample week isn't stamped; the first forecast from the engine will appear here within seconds.",
+    ts_s1: "Received", ts_s2: "Fingerprinted", ts_s3: "Sent to calendars", ts_s4: "In a Bitcoin block",
+    ts_s2_d: "SHA-256 of site, day, model and hours", ts_s3_d: "Only the hash leaves Pantheon", ts_s4_wait: "Waiting for Bitcoin to confirm", ts_block: "Block",
+    ts_all: "Every version", ts_c: ["Day", "v", "Received (Mexico City)", "Deadline", "SHA-256", "Status", "Bitcoin", ""],
+    ts_ontime: "on time", ts_late: "late", ts_check: "Check", ts_ok: "matches", ts_bad: "doesn't match", ts_proof: ".ots",
+    st_bitcoin: "In Bitcoin", st_pending: "Pending", st_queued: "Queued", st_failed: "Retry", st_sample: "Sample", st_off: "Off",
+    ts_refresh: "Check Bitcoin now", ts_refreshed: "{a} anchored, {p} still pending, {s} sent, {f} failed",
+    ts_how: "Check it yourself, without trusting Genau",
+    ts_how1: "Press Check on any row: your browser downloads the forecast's exact bytes and recomputes its SHA-256 here, in your browser.",
+    ts_how2: "Download the .ots proof and the forecast (the {c} link), then drop both on opentimestamps.org or run: ots verify -f forecast.json forecast.json.ots",
+    ts_how3: "It names the Bitcoin block and its time. If that time is before the day's market results, the forecast was made before anyone knew the answer.",
+    ts_canon: "forecast", ts_off: "Bitcoin timestamps are switched off on this server (PANTHEON_OTS=false)."
+  });
+  Object.assign(T.es, {
+    nav_ts: "Sellos de tiempo", ts_eyebrow: "Registro Víspera · {site}", ts_title: "Sellos de tiempo en Bitcoin",
+    ts_lede: "La huella SHA-256 de cada pronóstico se ancla en la cadena de bloques de Bitcoin mediante OpenTimestamps. Una vez confirmada en un bloque, nadie, ni Genau, puede cambiar ese pronóstico sin que se note.",
+    ts_k_btc: "En un bloque de Bitcoin", ts_k_pend: "Esperando bloque", ts_k_queue: "Enviándose", ts_k_fail: "Por reintentar",
+    ts_k_btc_c: "Probado, verificable por cualquiera", ts_k_pend_c: "Los calendarios lo tienen; suele tardar unas horas", ts_k_queue_c: "Se envía segundos después de llegar", ts_k_fail_c: "Se reintenta cada 30 minutos",
+    ts_progress: "Avance", ts_of: "{n} de {t} pronósticos reales anclados", ts_samples: "{n} pronósticos de ejemplo nunca se sellan.",
+    ts_latest: "Último pronóstico, paso a paso", ts_none: "Aún no hay pronósticos reales. La semana de ejemplo no se sella; el primer pronóstico del motor aparecerá aquí en segundos.",
+    ts_s1: "Recibido", ts_s2: "Huella calculada", ts_s3: "Enviado a calendarios", ts_s4: "En un bloque de Bitcoin",
+    ts_s2_d: "SHA-256 de sitio, día, modelo y horas", ts_s3_d: "Solo sale el hash de Pantheon", ts_s4_wait: "Esperando confirmación de Bitcoin", ts_block: "Bloque",
+    ts_all: "Todas las versiones", ts_c: ["Día", "v", "Recibido (CDMX)", "Límite", "SHA-256", "Estado", "Bitcoin", ""],
+    ts_ontime: "a tiempo", ts_late: "tarde", ts_check: "Verificar", ts_ok: "coincide", ts_bad: "no coincide", ts_proof: ".ots",
+    st_bitcoin: "En Bitcoin", st_pending: "Pendiente", st_queued: "En cola", st_failed: "Reintentar", st_sample: "Ejemplo", st_off: "Apagado",
+    ts_refresh: "Consultar Bitcoin ahora", ts_refreshed: "{a} anclados, {p} pendientes, {s} enviados, {f} fallidos",
+    ts_how: "Verifíquelo usted mismo, sin confiar en Genau",
+    ts_how1: "Pulse Verificar en cualquier fila: su navegador descarga los bytes exactos del pronóstico y recalcula su SHA-256 aquí mismo.",
+    ts_how2: "Descargue la prueba .ots y el pronóstico (el enlace {c}), y suelte ambos en opentimestamps.org o ejecute: ots verify -f forecast.json forecast.json.ots",
+    ts_how3: "Indica el bloque de Bitcoin y su hora. Si es anterior a los resultados del mercado de ese día, el pronóstico se hizo antes de que nadie supiera la respuesta.",
+    ts_canon: "pronóstico", ts_off: "Los sellos en Bitcoin están apagados en este servidor (PANTHEON_OTS=false)."
+  });
+
+  var TS_COL = { bitcoin: "var(--good)", pending: "var(--peak)", queued: "var(--charge)", failed: "var(--critical)", sample: "var(--neutral-mark)", off: "var(--neutral-mark)" };
+  var tsTimer = null;
+  function fillT(k, o) { return t(k).replace(/\{(\w+)\}/g, function (_, n) { return o[n]; }); }
+  function pill(st) {
+    return '<span class="mono small" style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;border:1px solid ' + TS_COL[st] +
+      ';color:' + TS_COL[st] + ';white-space:nowrap"><span style="width:7px;height:7px;border-radius:50%;background:' + TS_COL[st] + (st === "pending" || st === "queued" ? ";animation:tspulse 1.4s infinite" : "") + '"></span>' + esc(t("st_" + st)) + "</span>";
+  }
+  function blockLink(h) { return '<a class="mono" href="https://blockstream.info/block-height/' + h + '" target="_blank" rel="noopener">#' + Number(h).toLocaleString(loc()) + "</a>"; }
+  function sha256hex(text) {
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)).then(function (b) {
+      return Array.prototype.map.call(new Uint8Array(b), function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
+    });
+  }
+
+  function timestampsPage() {
+    clearTimeout(tsTimer);
+    var site = qsel.site;
+    return Promise.all([api("/v1/qenergy/sites"), api("/v1/qenergy/sites/" + site + "/anchors")]).then(function (r) {
+      var s = r[0].filter(function (x) { return x.id === site; })[0] || r[0][0], b = r[1], c = b.counts;
+      var real = b.versions.filter(function (v) { return !v.sample; }), total = real.length;
+      var bar = total ? ["bitcoin", "pending", "queued", "failed"].map(function (k) {
+        return c[k] ? '<span title="' + esc(t("st_" + k)) + " " + c[k] + '" style="width:' + (c[k] / total * 100).toFixed(2) + "%;background:" + TS_COL[k] + ';display:inline-block;height:100%"></span>' : "";
+      }).join("") : "";
+      var legend = ["bitcoin", "pending", "queued", "failed"].map(function (k) {
+        return '<span class="small" style="display:inline-flex;align-items:center;gap:6px;margin-right:16px"><span style="width:10px;height:10px;border-radius:3px;background:' + TS_COL[k] + '"></span>' + esc(t("st_" + k)) + " <span class=\"mono\">" + c[k] + "</span></span>";
+      }).join("");
+
+      // step-by-step for the newest real forecast
+      var L = real[0], steps = "";
+      if (L) {
+        var reached = { queued: 2, failed: 2, pending: 3, bitcoin: 4, off: 2 }[L.status] || 2;
+        var st = [
+          [t("ts_s1"), dateTime(L.received_at) + " · v" + L.version],
+          [t("ts_s2"), '<span class="mono">' + esc(L.sha256.slice(0, 12)) + "…</span><br>" + esc(t("ts_s2_d"))],
+          [t("ts_s3"), L.stamped_at ? dateTime(L.stamped_at) + "<br>" + esc(t("ts_s3_d")) : (L.status === "failed" ? '<span class="bad">' + esc(L.error || "") + "</span>" : esc(t("ts_s3_d")))],
+          [t("ts_s4"), L.block_height ? esc(t("ts_block")) + " " + blockLink(L.block_height) : esc(t("ts_s4_wait"))]
+        ];
+        steps = '<ol class="tssteps">' + st.map(function (x, i) {
+          var cls = i < reached ? "done" : (i === reached ? (L.status === "failed" ? "fail" : "now") : "");
+          return '<li class="' + cls + '"><span class="dot">' + (i < reached ? "✓" : i + 1) + '</span><div><strong>' + esc(x[0]) + '</strong><div class="small muted">' + x[1] + "</div></div></li>";
+        }).join("") + "</ol><p class=\"small muted\" style=\"margin:8px 0 0\">" + esc(dateLong(L.day)) + " · " + esc(L.model_version) + "</p>";
+      } else steps = '<p class="muted" style="margin:0">' + esc(t("ts_none")) + "</p>";
+
+      var cols = t("ts_c");
+      var rows = b.versions.map(function (v, i) {
+        return "<tr" + (v.sample ? ' style="opacity:.6"' : "") + '><td class="mono">' + v.day + '</td><td class="mono">' + v.version + '</td><td class="mono small">' + esc(dateTime(v.received_at)) +
+          '</td><td class="small">' + (v.sample ? '<span class="muted">—</span>' : v.on_time ? '<span style="color:var(--good)">✓ ' + esc(t("ts_ontime")) + "</span>" : '<span style="color:var(--critical)">' + esc(t("ts_late")) + "</span>") +
+          '</td><td class="mono small" title="' + v.sha256 + '">' + v.sha256.slice(0, 10) + "…</td><td>" + pill(v.status) + "</td><td>" + (v.block_height ? blockLink(v.block_height) : '<span class="muted">—</span>') +
+          '</td><td style="white-space:nowrap"><button class="btn" type="button" data-tscheck="' + i + '">' + esc(t("ts_check")) + "</button> " +
+          (v.proof_url ? '<button class="btn" type="button" data-tsproof="' + i + '">' + esc(t("ts_proof")) + "</button> " : "") +
+          '<button class="btn" type="button" data-tscanon="' + i + '">{ }</button> <span class="small" data-tsres="' + i + '"></span></td></tr>';
+      }).join("");
+
+      frame("timestamps",
+        '<style>@keyframes tspulse{0%,100%{opacity:1}50%{opacity:.25}}' +
+        '.tssteps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;position:relative}' +
+        '.tssteps li{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:10px;background:var(--bg-300);border:1px solid var(--line-subtle)}' +
+        '.tssteps .dot{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-size:13px;border:1px solid var(--line-control);color:var(--ink-3)}' +
+        '.tssteps li.done{border-color:var(--good)}.tssteps li.done .dot{background:var(--good);border-color:var(--good);color:#06150E}' +
+        '.tssteps li.now{border-color:var(--peak)}.tssteps li.now .dot{border-color:var(--peak);color:var(--peak);animation:tspulse 1.4s infinite}' +
+        '.tssteps li.fail{border-color:var(--critical)}.tssteps li.fail .dot{border-color:var(--critical);color:var(--critical)}' +
+        '@media (max-width:720px){.tssteps{grid-template-columns:1fr 1fr}' +
+        '.tstable thead{display:none}.tstable,.tstable tbody{display:block;min-width:0}.tstable tr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:12px 0;border-bottom:1px solid var(--line-subtle)}' +
+        '.tstable td{display:block;padding:0;border:0}.tstable td:last-child{flex-basis:100%}}@media (max-width:420px){.tssteps{grid-template-columns:1fr}}</style>' +
+        '<div class="head"><div><div class="eyebrow">' + esc(fillT("ts_eyebrow", { site: s.name })) + '</div><h1 class="title">' + esc(t("ts_title")) + '</h1><p class="muted" style="margin:4px 0 0;max-width:760px">' + esc(t("ts_lede")) + "</p></div>" +
+        (can("forecast.write") ? '<button class="btn primary" type="button" data-tsrefresh>' + esc(t("ts_refresh")) + "</button>" : "") + "</div>" +
+        (b.enabled ? "" : '<div class="banner missed"><span>' + esc(t("ts_off")) + "</span></div>") +
+        '<div class="row" style="gap:12px">' + kpi(t("ts_k_btc"), '<span style="color:var(--good)">' + c.bitcoin + "</span>", esc(t("ts_k_btc_c"))) +
+        kpi(t("ts_k_pend"), '<span style="color:var(--peak)">' + c.pending + "</span>", esc(t("ts_k_pend_c"))) +
+        kpi(t("ts_k_queue"), '<span style="color:var(--charge)">' + c.queued + "</span>", esc(t("ts_k_queue_c"))) +
+        kpi(t("ts_k_fail"), '<span style="color:var(--critical)">' + c.failed + "</span>", esc(t("ts_k_fail_c"))) + "</div>" +
+        '<section class="card"><div class="head" style="align-items:baseline"><h2>' + esc(t("ts_progress")) + '</h2><span class="small muted">' + esc(fillT("ts_of", { n: c.bitcoin, t: total })) + "</span></div>" +
+        '<div class="bar" style="height:14px;border-radius:7px;display:flex">' + bar + "</div><div style=\"margin-top:10px\">" + legend + "</div>" +
+        (c.sample ? '<p class="small muted" style="margin:8px 0 0">' + esc(fillT("ts_samples", { n: c.sample })) + "</p>" : "") + "</section>" +
+        '<section class="card"><h2>' + esc(t("ts_latest")) + "</h2>" + steps + "</section>" +
+        '<section class="card"><h2>' + esc(t("ts_all")) + '</h2><div class="tablewrap"><table class="tstable"><thead><tr>' + cols.map(function (x) { return "<th>" + esc(x) + "</th>"; }).join("") + "</tr></thead><tbody>" + rows + "</tbody></table></div></section>" +
+        '<section class="card"><h2>' + esc(t("ts_how")) + '</h2><ol class="small" style="margin:0;padding-left:20px;line-height:1.7"><li>' + esc(t("ts_how1")) + "</li><li>" + esc(fillT("ts_how2", { c: "{ }" })) + "</li><li>" + esc(t("ts_how3")) + "</li></ol>" +
+        '<p class="small muted mono" style="margin:10px 0 0;overflow-wrap:anywhere">' + b.calendars.map(esc).join(" · ") + "</p></section>", 0);
+
+      var root = document.getElementById("app");
+      root.querySelectorAll("[data-tscheck]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var v = b.versions[Number(btn.dataset.tscheck)], out = root.querySelector('[data-tsres="' + btn.dataset.tscheck + '"]');
+          api(v.canonical_url, { raw: true }).then(sha256hex).then(function (h) {
+            out.innerHTML = h === v.sha256 ? '<span style="color:var(--good)">✓ ' + esc(t("ts_ok")) + "</span>" : '<span style="color:var(--critical)">✗ ' + esc(t("ts_bad")) + "</span>";
+          }, function (e) { toast(e.message || t("err_network"), true); });
+        });
+      });
+      root.querySelectorAll("[data-tsproof]").forEach(function (btn) {
+        btn.addEventListener("click", function () { var v = b.versions[Number(btn.dataset.tsproof)]; download(v.proof_url, site + "-" + v.day + "-v" + v.version + ".json.ots"); });
+      });
+      root.querySelectorAll("[data-tscanon]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var v = b.versions[Number(btn.dataset.tscanon)];
+          api(v.canonical_url, { raw: true }).then(function (txt) {
+            var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([txt], { type: "application/json" }));
+            a.download = site + "-" + v.day + "-v" + v.version + ".json"; document.body.appendChild(a); a.click(); a.remove();
+          }, function (e) { toast(e.message, true); });
+        });
+      });
+      var rb = root.querySelector("[data-tsrefresh]");
+      if (rb) rb.addEventListener("click", function () {
+        rb.disabled = true;
+        api("/v1/qenergy/anchors/refresh", { method: "POST" }).then(function (o) {
+          toast(fillT("ts_refreshed", { a: o.anchored || 0, p: o.still_pending || 0, s: o.stamped || 0, f: o.failed || 0 })); route();
+        }, function (e) { rb.disabled = false; toast(e.message, true); });
+      });
+      // keep the page live while anything is on its way
+      if (c.queued || c.pending) tsTimer = setTimeout(function () { if (currentRoute().name === "timestamps") route(); }, 60000);
+    });
+  }
+
   // ---------- Routing ----------
   function currentRoute() {
     var parts = (location.hash || "#/home").replace(/^#\/?/, "").split("/");
     return { name: parts[0] || "home", arg: parts[1] };
   }
-  var PAGES = { home: homePage, yesterday: yesterdayPage, today: todayPage, alerts: alertsPage, settlement: settlementPage, fleet: fleetPage, audit: auditPage, lines: linesPage, plan: planPage, model: modelPage, qenergy: qenergyPage };
+  var PAGES = { home: homePage, yesterday: yesterdayPage, today: todayPage, alerts: alertsPage, settlement: settlementPage, fleet: fleetPage, audit: auditPage, lines: linesPage, plan: planPage, model: modelPage, qenergy: qenergyPage, timestamps: timestampsPage };
 
   function route() {
     stopReplay();
     if (!state.key) { signinPage(); return; }
     if (!state.me) { signIn(state.key); return; }
     var r = currentRoute(), page = PAGES[r.name] || homePage;
-    if (state.me.user.role === "partner" && r.name !== "qenergy") { page = qenergyPage; r = { name: "qenergy" }; }
+    if (state.me.user.role === "partner" && r.name !== "qenergy" && r.name !== "timestamps") { page = qenergyPage; r = { name: "qenergy" }; }
     page(r.arg).catch(function (e) {
       if (e && e.status === 401) { state.key = null; state.me = null; save("key", null); signinPage(); return; }
       errorPage(e || {});
