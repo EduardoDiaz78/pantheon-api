@@ -732,9 +732,9 @@
     if (!ps || !ps.length) return "";
     var col = { customer: "var(--good)", partner: "var(--charge-text)", channel: "var(--peak)", competitor: "var(--critical)" };
     var rows = ps.map(function (x) {
-      var host = ""; try { host = new URL(x.url).hostname.replace(/^www\./, ""); } catch (e) { host = x.url; }
+      var host = ""; if (x.url) { try { host = new URL(x.url).hostname.replace(/^www\./, ""); } catch (e) { host = x.url; } }
       return "<tr><td><strong>" + esc(x.name) + '</strong><div class="small" style="color:' + col[x.kind] + '">' + esc(t("k_" + x.kind)) + "</div></td>" +
-        '<td class="small">' + esc(x.what) + '</td><td class="small">' + esc(x.evidence) + '</td><td class="small"><a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(host) + "</a></td></tr>";
+        '<td class="small">' + esc(x.what) + '</td><td class="small">' + esc(x.evidence) + '</td><td class="small">' + (x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(host) + "</a>" : esc(x.source || "")) + "</td></tr>";
     }).join("");
     return '<section class="card"><h2>' + esc(t("l_prospects")) + ' <span class="muted small mono">' + ps.length + '</span></h2><p class="small muted" style="margin:0">' + esc(t("l_prospects_note")) + "</p>" +
       '<div class="tablewrap"><table><thead><tr><th>' + esc(t("l_company")) + "</th><th>" + esc(t("l_what")) + "</th><th>" + esc(t("l_evidence")) + "</th><th>" + esc(t("l_source")) + "</th></tr></thead><tbody>" + rows + "</tbody></table></div></section>";

@@ -5665,8 +5665,26 @@
             "title": "Evidence"
           },
           "url": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Url"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
           }
         },
         "type": "object",
@@ -5674,8 +5692,7 @@
           "name",
           "kind",
           "what",
-          "evidence",
-          "url"
+          "evidence"
         ],
         "title": "Prospect"
       },

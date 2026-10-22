@@ -38,7 +38,8 @@ class Prospect(BaseModel):
     kind: Literal["customer", "partner", "channel", "competitor"]
     what: str
     evidence: str
-    url: str
+    url: Optional[str] = None
+    source: Optional[str] = None
 
 
 class ProductDetail(ProductLine):

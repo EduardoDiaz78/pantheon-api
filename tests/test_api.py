@@ -483,4 +483,4 @@ def test_business_plan_admin_only_and_adds_up(client):
 def test_prospects_only_for_genau(client):
     assert client.get("/v1/products/white-label", headers=MANAGER).json()["prospects"] == []
     ps = client.get("/v1/products/white-label", headers=ADMIN).json()["prospects"]
-    assert any(p["name"] == "SkySense" for p in ps) and all(p["url"].startswith("https://") for p in ps)
+    assert any(p["name"] == "SkySense" for p in ps) and all((p["url"] or "").startswith("https://") or p["source"] for p in ps)
