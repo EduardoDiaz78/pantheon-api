@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Pantheon · Alerts and audit log</title>
+
+<style>
+body{margin:0;background:#0A0E13}
+a{color:#C9D3DE}a:hover{color:#FFFFFF}
+</style><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"><style>body{padding-bottom:64px}</style></head>
+<body>
+
+
+<div style="min-height: 100vh; background: #0A0E13; color: #E6EDF5; font-family: 'IBM Plex Sans', system-ui, sans-serif; box-sizing: border-box">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 32px; border-bottom: 1px solid #1C2530">
+<div style="display: flex; align-items: center; gap: 28px; flex-wrap: wrap">
+<div style="display: flex; align-items: center; gap: 10px">
+<svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true"><path d="M2 9 L13 3 L24 9" stroke="#E6EDF5" stroke-width="1.6" stroke-linejoin="round"></path><path d="M5 11 V21 M10 11 V21 M16 11 V21 M21 11 V21" stroke="#E6EDF5" stroke-width="1.6"></path><path d="M2 23 H24" stroke="#E6EDF5" stroke-width="1.6"></path></svg>
+<span style="font-size: 18px; font-weight: 600; letter-spacing: 0.08em">PANTHEON</span>
+</div>
+<nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap">
+<a href="Main.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Today</a>
+<a href="Replay.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Yesterday</a>
+<a href="Fleet.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Fleet</a>
+<a href="Forecast.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Forecast</a>
+<a href="Settlement.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Settlement</a>
+<a href="Battery.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Battery</a>
+<a href="Simulate.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Simulate</a>
+<a href="Alerts.html" aria-current="page" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 6px; background: #161E28; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 500">Alerts <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: #F59E0B; color: #1A1206">4</span></a>
+<a href="Connections.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Connections</a>
+</nav>
+</div>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 6px 10px; border: 1px dashed #4A5868; border-radius: 999px; color: #A9B6C4">SAMPLE DATA · ILLUSTRATIVE</span>
+</header>
+
+<main style="max-width: 1440px; margin: 0 auto; padding: 28px 32px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.01em">Alerts &amp; audit log</h1>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+
+<section aria-label="Alerts" style="flex: 3 1 560px; min-width: 0; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 500">Open alerts</h2>
+<div role="group" aria-label="Filter by severity" style="display: flex; gap: 4px; padding: 4px; background: #0C1218; border-radius: 8px">
+
+<button type="button" aria-pressed="true" style="min-height: 36px; min-width: 64px; padding: 0 12px; border: 0; border-radius: 6px; background: #1C2530; color: #FFFFFF; font-family: inherit; font-size: 13px; cursor: pointer">All</button>
+
+<button type="button" aria-pressed="false" style="min-height: 36px; min-width: 64px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #A9B6C4; font-family: inherit; font-size: 13px; cursor: pointer">High</button>
+
+<button type="button" aria-pressed="false" style="min-height: 36px; min-width: 64px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #A9B6C4; font-family: inherit; font-size: 13px; cursor: pointer">Medium</button>
+
+<button type="button" aria-pressed="false" style="min-height: 36px; min-width: 64px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: #A9B6C4; font-family: inherit; font-size: 13px; cursor: pointer">Low</button>
+
+</div>
+</div>
+
+<div style="display: flex; gap: 16px; padding: 16px; background: #0C1218; border: 1px solid #1C2530; border-radius: 10px; flex-wrap: wrap">
+<span style="flex: none; align-self: flex-start; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 8px; border-radius: 4px; background: rgba(245,158,11,0.16); color: #FBBF4D">HIGH</span>
+<div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 500">Critical hours forecast tomorrow, 19:00–22:00</span>
+<span style="font-size: 13px; color: #A9B6C4">Plan holds full charge going into the window. Approve before 10:00.</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #8A98A8">Site A · 17 Oct 18:02</span>
+</div>
+<a href="Main.html" style="flex: none; align-self: center; display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid #5C6B7D; border-radius: 8px; text-decoration: none; font-size: 14px">Review plan</a>
+</div>
+
+<div style="display: flex; gap: 16px; padding: 16px; background: #0C1218; border: 1px solid #1C2530; border-radius: 10px; flex-wrap: wrap">
+<span style="flex: none; align-self: flex-start; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 8px; border-radius: 4px; background: rgba(232,197,71,0.12); color: #E8C547">MEDIUM</span>
+<div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 500">Settlement differs from expected by −5.9%</span>
+<span style="font-size: 13px; color: #A9B6C4">CENACE statement for 4 Oct came in below the approved plan.</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #8A98A8">Site A · 16 Oct 09:15</span>
+</div>
+<a href="Settlement.html" style="flex: none; align-self: center; display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid #5C6B7D; border-radius: 8px; text-decoration: none; font-size: 14px">Open settlement</a>
+</div>
+
+<div style="display: flex; gap: 16px; padding: 16px; background: #0C1218; border: 1px solid #1C2530; border-radius: 10px; flex-wrap: wrap">
+<span style="flex: none; align-self: flex-start; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 8px; border-radius: 4px; background: rgba(232,197,71,0.12); color: #E8C547">MEDIUM</span>
+<div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 500">Battery data is 6 minutes late</span>
+<span style="font-size: 13px; color: #A9B6C4">State-of-charge readings delayed. Plan uses the last good value.</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #8A98A8">Site C · 17 Oct 17:48</span>
+</div>
+<a href="Battery.html" style="flex: none; align-self: center; display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid #5C6B7D; border-radius: 8px; text-decoration: none; font-size: 14px">View battery</a>
+</div>
+
+<div style="display: flex; gap: 16px; padding: 16px; background: #0C1218; border: 1px solid #1C2530; border-radius: 10px; flex-wrap: wrap">
+<span style="flex: none; align-self: flex-start; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 4px 8px; border-radius: 4px; background: rgba(138,152,168,0.16); color: #C9D3DE">LOW</span>
+<div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 500">Maintenance window starts 20 Oct, 08:00</span>
+<span style="font-size: 13px; color: #A9B6C4">Site excluded from plans until the window closes.</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #8A98A8">Site F · 15 Oct 11:00</span>
+</div>
+<a href="Fleet.html" style="flex: none; align-self: center; display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid #5C6B7D; border-radius: 8px; text-decoration: none; font-size: 14px">View fleet</a>
+</div>
+
+</section>
+
+<section aria-label="Notifications" style="flex: 2 1 320px; min-width: 0; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 500">Who gets notified</h2>
+<p style="margin: 0 0 8px; font-size: 14px; color: #A9B6C4">High alerts go out immediately. Others arrive in a daily digest.</p>
+
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid #1C2530">
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px">Email</span><span style="font-size: 13px; color: #8A98A8">[OPERATOR], [ASSET MANAGER]</span></div>
+<button type="button" role="switch" aria-checked="true" aria-label="Email" style="flex: none; width: 52px; height: 30px; padding: 3px; border: 0; border-radius: 999px; background: #3BA7FF; display: flex; justify-content: flex-end; cursor: pointer">
+<span style="width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF"></span>
+</button>
+</div>
+
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid #1C2530">
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px">WhatsApp</span><span style="font-size: 13px; color: #8A98A8">[OPERATOR] · morning plan, one-tap approval, incident decisions</span></div>
+<button type="button" role="switch" aria-checked="true" aria-label="WhatsApp" style="flex: none; width: 52px; height: 30px; padding: 3px; border: 0; border-radius: 999px; background: #3BA7FF; display: flex; justify-content: flex-end; cursor: pointer">
+<span style="width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF"></span>
+</button>
+</div>
+
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid #1C2530">
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px">SMS</span><span style="font-size: 13px; color: #8A98A8">No one yet</span></div>
+<button type="button" role="switch" aria-checked="false" aria-label="SMS" style="flex: none; width: 52px; height: 30px; padding: 3px; border: 0; border-radius: 999px; background: #5C6B7D; display: flex; justify-content: flex-start; cursor: pointer">
+<span style="width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF"></span>
+</button>
+</div>
+
+<button type="button" style="margin-top: 8px; min-height: 44px; background: transparent; border: 1px dashed #4A5868; border-radius: 8px; color: #E6EDF5; font-family: inherit; font-size: 14px; cursor: pointer">+ Add recipient</button>
+</section>
+</div>
+
+<section aria-label="Audit log" style="background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 500">Activity &amp; audit log</h2>
+<span style="font-size: 13px; color: #8A98A8">Every plan, approval, override and settings change, with who did it and when.</span>
+</div>
+<button type="button" style="min-height: 44px; padding: 0 16px; background: transparent; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-family: inherit; font-size: 14px; cursor: pointer">Export log</button>
+</div>
+<div style="overflow-x: auto">
+<div style="min-width: 720px; display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: 150px 170px 1fr; gap: 16px; padding: 8px 0 10px; border-bottom: 1px solid #1C2530; font-size: 12px; color: #8A98A8; letter-spacing: 0.04em">
+<span>WHEN</span><span>WHO</span><span>WHAT</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 150px 170px 1fr; gap: 16px; align-items: center; min-height: 48px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A9B6C4">17 Oct 18:41</span>
+<span style="color: #8A98A8">Pantheon</span>
+<span>Offer file exported for CENACE submission (18 Oct)</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 150px 170px 1fr; gap: 16px; align-items: center; min-height: 48px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A9B6C4">17 Oct 17:49</span>
+<span style="color: #E6EDF5">[OPERATOR] · WhatsApp</span>
+<span>Site C, no battery data: chose Hold the battery (WhatsApp, verified number +52 ••• 4821, PIN confirmed)</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 150px 170px 1fr; gap: 16px; align-items: center; min-height: 48px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A9B6C4">17 Oct 18:40</span>
+<span style="color: #E6EDF5">[OPERATOR]</span>
+<span>Approved day-ahead plan for 18 Oct</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 150px 170px 1fr; gap: 16px; align-items: center; min-height: 48px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A9B6C4">17 Oct 18:02</span>
+<span style="color: #8A98A8">Pantheon</span>
+<span>Generated day-ahead plan for 18 Oct</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 150px 170px 1fr; gap: 16px; align-items: center; min-height: 48px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A9B6C4">16 Oct 21:15</span>
+<span style="color: #E6EDF5">[OPERATOR]</span>
+<span>Override at 21:00: discharge 10 MW → 8 MW</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 150px 170px 1fr; gap: 16px; align-items: center; min-height: 48px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A9B6C4">15 Oct 09:30</span>
+<span style="color: #E6EDF5">[ADMIN]</span>
+<span>Changed limit: minimum state of charge 5% → 10%</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 150px 170px 1fr; gap: 16px; align-items: center; min-height: 48px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #A9B6C4">15 Oct 09:28</span>
+<span style="color: #E6EDF5">[ADMIN]</span>
+<span>Added maintenance window: 20 Oct 08:00–14:00</span>
+</div>
+
+</div>
+</div>
+</section>
+
+</main>
+</div>
+
+
+
+
+<div id="catalogue-bar" style="position:fixed;left:0;right:0;bottom:0;z-index:9999;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 16px;background:rgba(10,14,19,0.92);border-top:1px solid #1C2530;font:13px 'IBM Plex Sans',system-ui,sans-serif;color:#8A98A8;backdrop-filter:blur(6px)"><a href="index.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">&#8592; All screens</a><span style="color:#E6EDF5">Desktop · Handle exceptions · Alerts &amp; audit log</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 8px;border:1px dashed #2A3644;border-radius:999px">SAMPLE DATA · ILLUSTRATIVE</span><span style="flex:1"></span><a href="Fleet.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">&#8592; Previous</a><a href="D-alert-detail.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">Next &#8594;</a></div></body></html>

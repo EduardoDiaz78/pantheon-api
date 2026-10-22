@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Pantheon · Simulate a project</title>
+
+<style>
+body{margin:0;background:#0A0E13}
+a{color:#C9D3DE}a:hover{color:#FFFFFF}
+</style><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"><style>body{padding-bottom:64px}</style></head>
+<body>
+
+
+<div style="min-height: 100vh; background: #0A0E13; color: #E6EDF5; font-family: 'IBM Plex Sans', system-ui, sans-serif; box-sizing: border-box">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 32px; border-bottom: 1px solid #1C2530">
+<div style="display: flex; align-items: center; gap: 28px; flex-wrap: wrap">
+<div style="display: flex; align-items: center; gap: 10px">
+<svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true"><path d="M2 9 L13 3 L24 9" stroke="#E6EDF5" stroke-width="1.6" stroke-linejoin="round"></path><path d="M5 11 V21 M10 11 V21 M16 11 V21 M21 11 V21" stroke="#E6EDF5" stroke-width="1.6"></path><path d="M2 23 H24" stroke="#E6EDF5" stroke-width="1.6"></path></svg>
+<span style="font-size: 18px; font-weight: 600; letter-spacing: 0.08em">PANTHEON</span>
+</div>
+<nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap">
+<a href="Main.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Today</a>
+<a href="Replay.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Yesterday</a>
+<a href="Fleet.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Fleet</a>
+<a href="Forecast.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Forecast</a>
+<a href="Settlement.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Settlement</a>
+<a href="Battery.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Battery</a>
+<a href="Simulate.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; background: #161E28; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 500">Simulate</a>
+<a href="Alerts.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Alerts <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: #F59E0B; color: #1A1206">4</span></a>
+<a href="Connections.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Connections</a>
+</nav>
+</div>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 6px 10px; border: 1px dashed #4A5868; border-radius: 999px; color: #A9B6C4">SAMPLE DATA · ILLUSTRATIVE</span>
+</header>
+
+<main style="max-width: 1440px; margin: 0 auto; padding: 28px 32px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #8A98A8">PRE-CONSTRUCTION · INDICATIVE ESTIMATE</span>
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.01em">Simulate a project</h1>
+</div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<button type="button" style="min-height: 44px; padding: 0 18px; background: transparent; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-family: inherit; font-size: 14px; cursor: pointer">Download summary (PDF)</button>
+<button type="button" style="min-height: 44px; padding: 0 20px; background: #F59E0B; border: 0; border-radius: 8px; color: #1A1206; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Request a full diagnostic</button>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+
+<section aria-label="Project inputs" style="flex: 1 1 340px; min-width: 0; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 22px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 500">Your project</h2>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; color: #A9B6C4">Region</span>
+<div role="radiogroup" aria-label="Region" style="display: flex; flex-wrap: wrap; gap: 8px">
+
+<button type="button" role="radio" aria-checked="true" style="min-height: 44px; padding: 0 14px; background: #1C2530; border: 1px solid #F59E0B; border-radius: 8px; color: #FFFFFF; font-family: inherit; font-size: 14px; cursor: pointer">Nuevo León</button>
+
+<button type="button" role="radio" aria-checked="false" style="min-height: 44px; padding: 0 14px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #C9D3DE; font-family: inherit; font-size: 14px; cursor: pointer">Jalisco</button>
+
+<button type="button" role="radio" aria-checked="false" style="min-height: 44px; padding: 0 14px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #C9D3DE; font-family: inherit; font-size: 14px; cursor: pointer">Sonora</button>
+
+<button type="button" role="radio" aria-checked="false" style="min-height: 44px; padding: 0 14px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #C9D3DE; font-family: inherit; font-size: 14px; cursor: pointer">Yucatán</button>
+
+<button type="button" role="radio" aria-checked="false" style="min-height: 44px; padding: 0 14px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #C9D3DE; font-family: inherit; font-size: 14px; cursor: pointer">Baja California</button>
+
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; color: #A9B6C4">Power</span>
+<div style="display: flex; align-items: center; gap: 10px">
+<button type="button" aria-label="Decrease power" style="width: 44px; height: 44px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-size: 20px; cursor: pointer">−</button>
+<span style="flex: 1; min-height: 44px; display: flex; align-items: center; justify-content: center; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 18px">20 MW</span>
+<button type="button" aria-label="Increase power" style="width: 44px; height: 44px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-size: 20px; cursor: pointer">+</button>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; color: #A9B6C4">Duration</span>
+<div role="radiogroup" aria-label="Duration" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+
+<button type="button" role="radio" aria-checked="false" style="min-height: 44px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #C9D3DE; font-family: inherit; font-size: 14px; cursor: pointer">2 h</button>
+
+<button type="button" role="radio" aria-checked="true" style="min-height: 44px; background: #1C2530; border: 1px solid #F59E0B; border-radius: 8px; color: #FFFFFF; font-family: inherit; font-size: 14px; cursor: pointer">4 h</button>
+
+<button type="button" role="radio" aria-checked="false" style="min-height: 44px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #C9D3DE; font-family: inherit; font-size: 14px; cursor: pointer">6 h</button>
+
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; color: #A9B6C4">Strategy</span>
+<div role="radiogroup" aria-label="Strategy" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+
+<button type="button" role="radio" aria-checked="false" style="min-height: 44px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #C9D3DE; font-family: inherit; font-size: 13px; cursor: pointer">Conservative</button>
+
+<button type="button" role="radio" aria-checked="true" style="min-height: 44px; background: #1C2530; border: 1px solid #F59E0B; border-radius: 8px; color: #FFFFFF; font-family: inherit; font-size: 13px; cursor: pointer">Balanced</button>
+
+<button type="button" role="radio" aria-checked="false" style="min-height: 44px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #C9D3DE; font-family: inherit; font-size: 13px; cursor: pointer">Aggressive</button>
+
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; color: #A9B6C4">Start of operation</span>
+<button type="button" style="min-height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-family: inherit; font-size: 14px; cursor: pointer">Q3 2027 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5 L6 7.5 L9 4.5" stroke="#A9B6C4" stroke-width="1.4"></path></svg></button>
+</div>
+
+<p style="margin: 0; font-size: 13px; line-height: 1.5; color: #8A98A8">Indicative only. Based on historical prices for the region and a standard battery profile, with wear cost included. Not a revenue guarantee. A full diagnostic uses your node, interconnection and contract terms.</p>
+</section>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+<section aria-label="Results" style="display: flex; flex-wrap: wrap; gap: 16px">
+<div style="flex: 1 1 200px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #8A98A8">Expected net revenue / year</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500">58.0M <span style="font-size: 14px; color: #8A98A8">MXN</span></span>
+<span style="font-size: 13px; color: #A9B6C4">Middle case (P50)</span>
+</div>
+<div style="flex: 1 1 200px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #8A98A8">Likely range</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 500; padding-top: 4px">45.2M – 69.6M</span>
+<span style="font-size: 13px; color: #A9B6C4">Low (P10) to high (P90) year</span>
+</div>
+<div style="flex: 1 1 200px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #8A98A8">Per MW per year</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500">2,900</span>
+<span style="font-size: 13px; color: #A9B6C4">Thousand MXN</span>
+</div>
+<div style="flex: 1 1 200px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #8A98A8">Cycles per year</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500">300</span>
+<span style="font-size: 13px; color: #A9B6C4">Check against your warranty</span>
+</div>
+</section>
+
+<section aria-label="Monthly profile" style="background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: baseline">
+<h2 style="margin: 0; font-size: 17px; font-weight: 500">Month by month, first year</h2>
+<div style="display: flex; gap: 16px; font-size: 12px; color: #A9B6C4">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #3BA7FF"></span>Middle case</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 2px; height: 12px; background: #8A98A8"></span>Low to high range</span>
+</div>
+</div>
+<div style="height: 220px; display: flex; gap: 10px; border-bottom: 1px solid #263240">
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 50%; width: 2px; margin-left: -1px; bottom: 33.7%; height: 18.1%; background: #8A98A8"></span>
+<span style="position: absolute; left: 20%; right: 20%; bottom: 0; height: 43.2%; background: #3BA7FF; border-radius: 2px 2px 0 0; opacity: 0.85"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 50%; width: 2px; margin-left: -1px; bottom: 36.1%; height: 19.4%; background: #8A98A8"></span>
+<span style="position: absolute; left: 20%; right: 20%; bottom: 0; height: 46.3%; background: #3BA7FF; border-radius: 2px 2px 0 0; opacity: 0.85"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 50%; width: 2px; margin-left: -1px; bottom: 43.3%; height: 23.3%; background: #8A98A8"></span>
+<span style="position: absolute; left: 20%; right: 20%; bottom: 0; height: 55.6%; background: #3BA7FF; border-radius: 2px 2px 0 0; opacity: 0.85"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 50%; width: 2px; margin-left: -1px; bottom: 50.6%; height: 27.2%; background: #8A98A8"></span>
+<span style="position: absolute; left: 20%; right: 20%; bottom: 0; height: 64.8%; background: #3BA7FF; border-radius: 2px 2px 0 0; opacity: 0.85"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 50%; width: 2px; margin-left: -1px; bottom: 60.2%; height: 32.4%; background: #8A98A8"></span>
+<span style="position: absolute; left: 20%; right: 20%; bottom: 0; height: 77.2%; background: #3BA7FF; border-radius: 2px 2px 0 0; opacity: 0.85"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 50%; width: 2px; margin-left: -1px; bottom: 65.0%; height: 35.0%; background: #8A98A8"></span>
+<span style="position: absolute; left: 20%; right: 20%; bottom: 0; height: 83.3%; background: #3BA7FF; border-radius: 2px 2px 0 0; opacity: 0.85"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 50%; width: 2px; margin-left: -1px; bottom: 62.6%; height: 33.7%; background: #8A98A8"></span>
+<span style="position: absolute; left: 20%; right: 20%; bottom: 0; height: 80.2%; background: #3BA7FF; border-radius: 2px 2px 0 0; opacity: 0.85"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 50%; width: 2px; margin-left: -1px; bottom: 60.2%; height: 32.4%; background: #8A98A8"></span>
+<span style="position: absolute; left: 20%; right: 20%; bottom: 0; height: 77.2%; background: #3BA7FF; border-radius: 2px 2px 0 0; opacity: 0.85"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 50%; width: 2px; margin-left: -1px; bottom: 53.0%; height: 28.5%; background: #8A98A8"></span>
+<span style="position: absolute; left: 20%; right: 20%; bottom: 0; height: 67.9%; background: #3BA7FF; border-radius: 2px 2px 0 0; opacity: 0.85"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 50%; width: 2px; margin-left: -1px; bottom: 45.7%; height: 24.6%; background: #8A98A8"></span>
+<span style="position: absolute; left: 20%; right: 20%; bottom: 0; height: 58.6%; background: #3BA7FF; border-radius: 2px 2px 0 0; opacity: 0.85"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 50%; width: 2px; margin-left: -1px; bottom: 36.1%; height: 19.4%; background: #8A98A8"></span>
+<span style="position: absolute; left: 20%; right: 20%; bottom: 0; height: 46.3%; background: #3BA7FF; border-radius: 2px 2px 0 0; opacity: 0.85"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 50%; width: 2px; margin-left: -1px; bottom: 31.3%; height: 16.9%; background: #8A98A8"></span>
+<span style="position: absolute; left: 20%; right: 20%; bottom: 0; height: 40.1%; background: #3BA7FF; border-radius: 2px 2px 0 0; opacity: 0.85"></span>
+</div>
+
+</div>
+<div style="display: flex; gap: 10px">
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">J</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">F</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">M</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">A</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">M</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">J</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">J</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">A</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">S</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">O</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">N</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">D</span>
+
+</div>
+<p style="margin: 0; font-size: 13px; color: #8A98A8">Hot months earn more: evening peaks are sharper when air-conditioning load is high.</p>
+</section>
+
+<section aria-label="Compare durations" style="background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0 0 6px; font-size: 17px; font-weight: 500">Compare durations at 20 MW</h2>
+<div style="overflow-x: auto">
+<div style="min-width: 560px; display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #1C2530; font-size: 12px; color: #8A98A8; letter-spacing: 0.04em">
+<span>DURATION</span><span>ENERGY</span><span>NET / YEAR (MXN)</span><span>PER MW (K MXN)</span><span>CYCLES / YEAR</span>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-items: center; min-height: 48px; padding: 0 8px; margin: 0 -8px; border-radius: 6px; background: transparent; font-size: 14px">
+<span style="font-weight: 400">2 hours</span>
+<span style="font-family: 'IBM Plex Mono', monospace">40 MWh</span>
+<span style="font-family: 'IBM Plex Mono', monospace">38.0M</span>
+<span style="font-family: 'IBM Plex Mono', monospace">1,900</span>
+<span style="font-family: 'IBM Plex Mono', monospace">330</span>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-items: center; min-height: 48px; padding: 0 8px; margin: 0 -8px; border-radius: 6px; background: #141C26; font-size: 14px">
+<span style="font-weight: 600">4 hours</span>
+<span style="font-family: 'IBM Plex Mono', monospace">80 MWh</span>
+<span style="font-family: 'IBM Plex Mono', monospace">58.0M</span>
+<span style="font-family: 'IBM Plex Mono', monospace">2,900</span>
+<span style="font-family: 'IBM Plex Mono', monospace">300</span>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-items: center; min-height: 48px; padding: 0 8px; margin: 0 -8px; border-radius: 6px; background: transparent; font-size: 14px">
+<span style="font-weight: 400">6 hours</span>
+<span style="font-family: 'IBM Plex Mono', monospace">120 MWh</span>
+<span style="font-family: 'IBM Plex Mono', monospace">68.0M</span>
+<span style="font-family: 'IBM Plex Mono', monospace">3,400</span>
+<span style="font-family: 'IBM Plex Mono', monospace">260</span>
+</div>
+
+</div>
+</div>
+<p style="margin: 0; font-size: 13px; color: #8A98A8">Longer batteries earn more per MW but cost more to build. Bring your cost estimate to the full diagnostic for a payback view.</p>
+</section>
+
+</div>
+</div>
+
+</main>
+</div>
+
+
+
+
+<div id="catalogue-bar" style="position:fixed;left:0;right:0;bottom:0;z-index:9999;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 16px;background:rgba(10,14,19,0.92);border-top:1px solid #1C2530;font:13px 'IBM Plex Sans',system-ui,sans-serif;color:#8A98A8;backdrop-filter:blur(6px)"><a href="index.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">&#8592; All screens</a><span style="color:#E6EDF5">Desktop · Protect the battery, plan ahead · Simulate a project</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 8px;border:1px dashed #2A3644;border-radius:999px">SAMPLE DATA · ILLUSTRATIVE</span><span style="flex:1"></span><a href="Battery.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">&#8592; Previous</a><a href="D-simulate-compare.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">Next &#8594;</a></div></body></html>

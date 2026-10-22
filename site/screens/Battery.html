@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Pantheon · Battery health and limits</title>
+
+<style>
+body{margin:0;background:#0A0E13}
+a{color:#C9D3DE}a:hover{color:#FFFFFF}
+input:focus{outline:2px solid #3BA7FF;outline-offset:1px}
+</style><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"><style>body{padding-bottom:64px}</style></head>
+<body>
+
+
+<div style="min-height: 100vh; background: #0A0E13; color: #E6EDF5; font-family: 'IBM Plex Sans', system-ui, sans-serif; box-sizing: border-box">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 32px; border-bottom: 1px solid #1C2530">
+<div style="display: flex; align-items: center; gap: 28px; flex-wrap: wrap">
+<div style="display: flex; align-items: center; gap: 10px">
+<svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true"><path d="M2 9 L13 3 L24 9" stroke="#E6EDF5" stroke-width="1.6" stroke-linejoin="round"></path><path d="M5 11 V21 M10 11 V21 M16 11 V21 M21 11 V21" stroke="#E6EDF5" stroke-width="1.6"></path><path d="M2 23 H24" stroke="#E6EDF5" stroke-width="1.6"></path></svg>
+<span style="font-size: 18px; font-weight: 600; letter-spacing: 0.08em">PANTHEON</span>
+</div>
+<nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap">
+<a href="Main.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Today</a>
+<a href="Replay.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Yesterday</a>
+<a href="Fleet.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Fleet</a>
+<a href="Forecast.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Forecast</a>
+<a href="Settlement.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Settlement</a>
+<a href="Battery.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; background: #161E28; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 500">Battery</a>
+<a href="Simulate.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Simulate</a>
+<a href="Alerts.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Alerts <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: #F59E0B; color: #1A1206">4</span></a>
+<a href="Connections.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Connections</a>
+</nav>
+</div>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 6px 10px; border: 1px dashed #4A5868; border-radius: 999px; color: #A9B6C4">SAMPLE DATA · ILLUSTRATIVE</span>
+</header>
+
+<main style="max-width: 1440px; margin: 0 auto; padding: 28px 32px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #8A98A8">DEMO SITE · 10 MW / 40 MWh</span>
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.01em">Battery health &amp; limits</h1>
+</div>
+
+<section aria-label="Health figures" style="display: flex; flex-wrap: wrap; gap: 16px">
+<div style="flex: 1 1 220px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #8A98A8">State of health</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500">98.1%</span>
+<span style="font-size: 13px; color: #A9B6C4">Ahead of the warranty curve</span>
+</div>
+<div style="flex: 1 1 220px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; color: #8A98A8">Cycles used this year</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500">212 <span style="font-size: 14px; color: #8A98A8">of 365</span></span>
+<span style="height: 6px; border-radius: 3px; background: #1C2530; overflow: hidden"><span style="display: block; height: 100%; width: 58%; background: #3BA7FF"></span></span>
+</div>
+<div style="flex: 1 1 220px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #8A98A8">Availability, 30 days</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500">99.2%</span>
+<span style="font-size: 13px; color: #A9B6C4">Excludes planned maintenance</span>
+</div>
+<div style="flex: 1 1 220px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #8A98A8">Average cell temperature</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500">27 °C</span>
+<span style="font-size: 13px; color: #A9B6C4">Normal range</span>
+</div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+
+<section aria-label="Operating limits" style="flex: 3 1 520px; min-width: 0; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 500">Your operating limits</h2>
+<p style="margin: 0; font-size: 14px; color: #A9B6C4">Your own limits, inside the warranty terms. A plan over one of these needs an asset manager’s sign-off; a plan over a warranty term is refused.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; background: #0C1218; border: 1px solid #F87171; border-radius: 10px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline"><span style="font-size: 14px; font-weight: 500">Warranty terms · [OEM] · contract [REF] · hard limits</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #F87171">CANNOT BE OVERRIDDEN BY ANYONE</span></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 20px; font-size: 13px">
+<span style="display: flex; justify-content: space-between; gap: 8px"><span style="color: #A9B6C4">Depth of discharge</span><span style="font-family: 'IBM Plex Mono', monospace">5–97%</span></span>
+<span style="display: flex; justify-content: space-between; gap: 8px"><span style="color: #A9B6C4">Max cycles per day</span><span style="font-family: 'IBM Plex Mono', monospace">1.2</span></span>
+<span style="display: flex; justify-content: space-between; gap: 8px"><span style="color: #A9B6C4">Throughput per year</span><span style="font-family: 'IBM Plex Mono', monospace">14,600 MWh</span></span>
+<span style="display: flex; justify-content: space-between; gap: 8px"><span style="color: #A9B6C4">Max charge / discharge</span><span style="font-family: 'IBM Plex Mono', monospace">10 MW (0.25C)</span></span>
+<span style="display: flex; justify-content: space-between; gap: 8px"><span style="color: #A9B6C4">Cell temperature</span><span style="font-family: 'IBM Plex Mono', monospace">10–40 °C</span></span>
+<span style="display: flex; justify-content: space-between; gap: 8px"><span style="color: #A9B6C4">Used this year</span><span style="font-family: 'IBM Plex Mono', monospace">8,480 of 14,600 MWh</span></span>
+</div>
+<span style="font-size: 12px; color: #8A98A8">Entered from the warranty document during onboarding and countersigned by [CLIENT]. Changing them needs a new document, not a setting.</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 20px">
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A9B6C4">Minimum state of charge (%, warranty 5)<input type="number" value="10" style="min-height: 44px; padding: 0 12px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-family: 'IBM Plex Mono', monospace; font-size: 15px"></label>
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A9B6C4">Maximum state of charge (%, warranty 97)<input type="number" value="95" style="min-height: 44px; padding: 0 12px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-family: 'IBM Plex Mono', monospace; font-size: 15px"></label>
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A9B6C4">Max charge power (MW)<input type="number" value="10" style="min-height: 44px; padding: 0 12px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-family: 'IBM Plex Mono', monospace; font-size: 15px"></label>
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A9B6C4">Max discharge power (MW)<input type="number" value="10" style="min-height: 44px; padding: 0 12px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-family: 'IBM Plex Mono', monospace; font-size: 15px"></label>
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A9B6C4">Max cycles per day (warranty 1.2)<input type="number" value="1.0" step="0.1" style="min-height: 44px; padding: 0 12px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-family: 'IBM Plex Mono', monospace; font-size: 15px"></label>
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A9B6C4">Annual cycle budget (warranty 365)<input type="number" value="365" style="min-height: 44px; padding: 0 12px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-family: 'IBM Plex Mono', monospace; font-size: 15px"></label>
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A9B6C4">Battery wear cost (MXN per MWh discharged)<input type="number" value="180" style="min-height: 44px; padding: 0 12px; background: #0C1218; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-family: 'IBM Plex Mono', monospace; font-size: 15px"></label>
+<p style="margin: 0; align-self: end; font-size: 13px; line-height: 1.5; color: #8A98A8">Wear cost is charged against every planned discharge, so the battery only moves when the spread pays for the life it uses.</p>
+</div>
+<div style="display: flex; flex-direction: column">
+
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid #1C2530">
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px">Reserve charge for critical hours</span><span style="font-size: 13px; color: #8A98A8">Keep the battery full going into flagged hours</span></div>
+<button type="button" role="switch" aria-checked="true" aria-label="Reserve charge for critical hours" style="flex: none; width: 52px; height: 30px; padding: 3px; border: 0; border-radius: 999px; background: #3BA7FF; display: flex; justify-content: flex-end; cursor: pointer">
+<span style="width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF"></span>
+</button>
+</div>
+
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid #1C2530">
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px">Require approval before each offer</span><span style="font-size: 13px; color: #8A98A8">A person signs off on every plan before submission</span></div>
+<button type="button" role="switch" aria-checked="true" aria-label="Require approval before each offer" style="flex: none; width: 52px; height: 30px; padding: 3px; border: 0; border-radius: 999px; background: #3BA7FF; display: flex; justify-content: flex-end; cursor: pointer">
+<span style="width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF"></span>
+</button>
+</div>
+
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid #1C2530">
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 14px">Allow intraday re-optimization</span><span style="font-size: 13px; color: #8A98A8">Adjust the plan during the day as prices move</span></div>
+<button type="button" role="switch" aria-checked="false" aria-label="Allow intraday re-optimization" style="flex: none; width: 52px; height: 30px; padding: 3px; border: 0; border-radius: 999px; background: #5C6B7D; display: flex; justify-content: flex-start; cursor: pointer">
+<span style="width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF"></span>
+</button>
+</div>
+
+</div>
+<div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap">
+<button type="button" style="min-height: 44px; padding: 0 18px; background: transparent; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-family: inherit; font-size: 14px; cursor: pointer">Discard</button>
+<button type="button" style="min-height: 44px; padding: 0 20px; background: #F59E0B; border: 0; border-radius: 8px; color: #1A1206; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Save limits</button>
+</div>
+</section>
+
+<div style="flex: 2 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+<section aria-label="Health trend" style="background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 500">Health vs. warranty curve</h2>
+<div style="display: flex; gap: 16px; font-size: 12px; color: #A9B6C4">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 16px; height: 2px; background: #3BA7FF"></span>Measured</span>
+<span style="display: flex; align-items: center; gap: 6px"><svg width="18" height="4" aria-hidden="true"><line x1="0" y1="2" x2="18" y2="2" stroke="#8A98A8" stroke-width="1.5" stroke-dasharray="3 3"></line></svg>Warranty minimum</span>
+</div>
+<div style="position: relative; height: 150px; border-bottom: 1px solid #263240">
+<svg viewBox="0 0 120 100" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%">
+<polyline points="0,10 120,62" fill="none" stroke="#8A98A8" stroke-width="1.5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"></polyline>
+<polyline points="0.0,10.0 10.9,14.0 21.8,16.0 32.7,20.0 43.6,24.0 54.5,26.0 65.5,30.0 76.4,34.0 87.3,36.0 98.2,40.0 109.1,44.0 120.0,48.0" fill="none" stroke="#3BA7FF" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline>
+</svg>
+</div>
+<div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8"><span>Nov 2025</span><span>Oct 2026</span></div>
+</section>
+
+<section aria-label="Maintenance windows" style="background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0 0 8px; font-size: 17px; font-weight: 500">Maintenance windows</h2>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #1C2530">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px">20 Oct · 08:00–14:00</span><span style="font-size: 13px; color: #8A98A8">Inverter inspection</span></div>
+<span style="font-size: 13px; color: #A9B6C4">Planned around</span>
+</div>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px">11 Nov · all day</span><span style="font-size: 13px; color: #8A98A8">HVAC service</span></div>
+<span style="font-size: 13px; color: #A9B6C4">Planned around</span>
+</div>
+<button type="button" style="margin-top: 8px; min-height: 44px; background: transparent; border: 1px dashed #4A5868; border-radius: 8px; color: #E6EDF5; font-family: inherit; font-size: 14px; cursor: pointer">+ Add maintenance window</button>
+</section>
+
+</div>
+</div>
+
+</main>
+</div>
+
+
+
+
+<div id="catalogue-bar" style="position:fixed;left:0;right:0;bottom:0;z-index:9999;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 16px;background:rgba(10,14,19,0.92);border-top:1px solid #1C2530;font:13px 'IBM Plex Sans',system-ui,sans-serif;color:#8A98A8;backdrop-filter:blur(6px)"><a href="index.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">&#8592; All screens</a><span style="color:#E6EDF5">Desktop · Protect the battery, plan ahead · Battery health &amp; limits</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 8px;border:1px dashed #2A3644;border-radius:999px">SAMPLE DATA · ILLUSTRATIVE</span><span style="flex:1"></span><a href="D-monthly-report.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">&#8592; Previous</a><a href="Simulate.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">Next &#8594;</a></div></body></html>

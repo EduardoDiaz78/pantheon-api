@@ -49,7 +49,7 @@ class Store:
             User(id="u-mauricio", name="Mauricio", role=Role.asset_manager, email="mauricio@[client].mx"),
             User(id="u-lucia", name="Lucía", role=Role.viewer, email="lucia@[client].mx"),
             User(id="u-andres", name="Andrés", role=Role.auditor, email="andres@[lender].com", language="en"),
-            User(id="u-admin", name="[ADMIN]", role=Role.admin, email="admin@[client].mx"),
+            User(id="u-admin", name="Genau", role=Role.admin, email="admin@[client].mx"),
         ]}
         # Demo keys only. Production: hashed keys, scoped to an organization's sites.
         self.api_keys: dict[str, str] = {
@@ -107,8 +107,8 @@ class Store:
              "resource": "/v1/sites/site-a/maintenance-windows", "status": "open"},
         ]
         self.audit: list[dict] = [
-            {"at": T("2026-10-15", "09:28"), "actor": "[ADMIN]", "action": "maintenance.create", "detail": "Added maintenance window 20 Oct 08:00–14:00 (Inverter inspection)", "site_id": "site-a"},
-            {"at": T("2026-10-15", "09:30"), "actor": "[ADMIN]", "action": "limits.update", "detail": "min_soc_pct 5 → 10", "site_id": "site-a"},
+            {"at": T("2026-10-15", "09:28"), "actor": "Genau", "action": "maintenance.create", "detail": "Added maintenance window 20 Oct 08:00–14:00 (Inverter inspection)", "site_id": "site-a"},
+            {"at": T("2026-10-15", "09:30"), "actor": "Genau", "action": "limits.update", "detail": "min_soc_pct 5 → 10", "site_id": "site-a"},
             {"at": T("2026-10-16", "18:02"), "actor": "Pantheon", "action": "plan.generated", "detail": "Day-ahead plan generated for 2026-10-18", "site_id": "site-a"},
         ]
         self.webhooks: dict[str, dict] = {}

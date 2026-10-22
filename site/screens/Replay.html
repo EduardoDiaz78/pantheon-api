@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Pantheon · Yesterday, replayed</title>
+
+<style>
+body{margin:0;background:#0A0E13}
+a{color:#C9D3DE}a:hover{color:#E6EDF5}
+</style><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"><style>body{padding-bottom:64px}</style></head>
+<body>
+
+
+<div style="min-height: 100vh; box-sizing: border-box; background: #0A0E13; color: #E6EDF5; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 32px; border-bottom: 1px solid #1C2530">
+<div style="display: flex; align-items: center; gap: 28px; flex-wrap: wrap">
+<div style="display: flex; align-items: center; gap: 10px">
+<svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true"><path d="M2 9 L13 3 L24 9" stroke="#E6EDF5" stroke-width="1.6" stroke-linejoin="round"></path><path d="M5 11 V21 M10 11 V21 M16 11 V21 M21 11 V21" stroke="#E6EDF5" stroke-width="1.6"></path><path d="M2 23 H24" stroke="#E6EDF5" stroke-width="1.6"></path></svg>
+<span style="font-size: 18px; font-weight: 600; letter-spacing: 0.08em">PANTHEON</span>
+</div>
+<nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap">
+<a href="Main.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Today</a>
+<a href="Replay.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; background: #161E28; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 500">Yesterday</a>
+<a href="Fleet.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Fleet</a>
+<a href="Forecast.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Forecast</a>
+<a href="Settlement.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Settlement</a>
+<a href="Battery.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Battery</a>
+<a href="Simulate.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Simulate</a>
+<a href="Alerts.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Alerts <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: #F59E0B; color: #1A1206">4</span></a>
+<a href="Connections.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Connections</a>
+</nav>
+</div>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 6px 10px; border: 1px dashed #4A5868; border-radius: 999px; color: #A9B6C4">SAMPLE DATA · ILLUSTRATIVE</span>
+</header>
+<div style="max-width: 1280px; margin: 0 auto; padding: 28px 32px 56px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 820px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #8A98A8">[CLIENT] PLANT · FRIDAY 16 OCTOBER · DAILY REPLAY</span>
+<h1 style="margin: 0; font-size: 32px; font-weight: 500; letter-spacing: -0.01em">Did Pantheon earn its fee yesterday?</h1>
+<div class="seg" role="group" aria-label="Compared with" style="display: inline-flex; align-self: flex-start; border: 1px solid #5C6B7D; border-radius: 8px; overflow: hidden"><span style="padding: 0 12px; min-height: 40px; display: inline-flex; align-items: center; font-size: 13px; color: #8A98A8">Compared with</span><button type="button" aria-pressed="true" style="min-height: 40px; padding: 0 14px; border: 0; border-left: 1px solid #5C6B7D; background: #141C26; color: #E6EDF5; font-family: inherit; font-size: 14px; cursor: pointer">Your schedule before Pantheon</button><button type="button" aria-pressed="false" style="min-height: 40px; padding: 0 14px; border: 0; border-left: 1px solid #5C6B7D; background: transparent; color: #A9B6C4; font-family: inherit; font-size: 14px; cursor: pointer">Battery idle</button></div>
+<p style="margin: 0; font-size: 18px; line-height: 1.5; color: #C9D3DE"><strong style="color: #3DDC97; font-weight: 600">Yes.</strong> The battery earned 9,705 MXN more than your fixed 17:00–21:00 schedule would have, by holding fire for the real peak, and was discharging in both hours it had rated likely critical.</p>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #8A98A8">Dispatched: EMS telemetry · Measured: CENACE meter · Prices: PML MDA/MTR · Settlement: preliminary statement of [DATE]</span>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<a href="Main.html" style="min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; border: 1px solid #5C6B7D; border-radius: 8px; text-decoration: none; font-size: 14px">Tomorrow’s offer</a>
+<a href="WA-Plan.html" style="min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; border: 1px solid #5C6B7D; border-radius: 8px; text-decoration: none; font-size: 14px">Sent to WhatsApp at 07:30</a>
+<a href="#" style="min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; border: 1px solid #5C6B7D; border-radius: 8px; text-decoration: none; font-size: 14px">Send to my boss (PDF)</a>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px">
+<div style="padding: 20px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: #8A98A8">Gained vs your schedule</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 500; color: #3DDC97">+9,705 <span style="font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; color: #8A98A8">MXN</span></span><span style="font-size: 13px; color: #A9B6C4">After charging cost and battery wear</span></div>
+<div style="padding: 20px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: #8A98A8">The plan expected</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 500">70,385 <span style="font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; color: #8A98A8">MXN</span></span><span style="font-size: 13px; color: #A9B6C4"><span style="color: #3DDC97">+1,475 (+2.1%)</span> on the day</span></div>
+<div style="padding: 20px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: #8A98A8">Likely critical hours covered</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 500; color: #F59E0B">2 / 2</span><span style="font-size: 13px; color: #A9B6C4">19:00 and 20:00, rated likely (≥ 50%)</span></div>
+<div style="padding: 20px; background: #0C1218; border: 1px dashed #5C6B7D; border-radius: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: #8A98A8">Pantheon fee for the day</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 500">[FEE %] <span style="font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; color: #8A98A8">of the gain</span></span><span style="font-size: 13px; color: #A9B6C4">Charged on the gain over your schedule, never on the plan</span></div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+
+<section style="flex: 999 1 640px; min-width: 0; padding: 20px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 500; flex: 1 1 200px">Replay, hour by hour</h2>
+<button type="button" style="min-height: 44px; min-width: 112px; padding: 0 18px; border: 0; border-radius: 8px; background: #F59E0B; color: #1A1206; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Play the day</button>
+<label for="replay-hour" style="font-size: 13px; color: #8A98A8">Hour</label>
+<input id="replay-hour" type="range" min="0" max="23" step="1" value="23" style="flex: 1 1 200px; accent-color: #F59E0B; min-height: 44px">
+</div>
+
+<div style="display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #A9B6C4">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 10px; border: 1px dashed #A9B6C4; border-radius: 2px"></span>Planned</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 10px; background: #F59E0B; border-radius: 2px"></span>Discharged</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 10px; background: #3BA7FF; border-radius: 2px"></span>Charged from solar</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 10px; background: #3DDC97; border-radius: 2px"></span>Gained vs your schedule</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 12px; height: 10px; background: rgba(245,158,11,0.25); border-radius: 2px"></span>Likely critical hour (≥ 50%)</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px">
+<div style="display: flex; flex-direction: column; font-size: 11px; color: #8A98A8">
+<span style="height: 132px; display: flex; flex-direction: column; justify-content: space-between; padding: 4px 0"><span>+10 MW</span><span>Battery</span><span>−10 MW</span></span>
+<span style="height: 112px; margin-top: 8px; display: flex; flex-direction: column; justify-content: space-between; padding: 4px 0"><span>+32k</span><span>MXN</span><span>−32k</span></span>
+</div>
+<div style="display: flex; gap: 2px; min-width: 0">
+
+<button type="button" aria-label="Show 00:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center">00</span>
+</button>
+
+<button type="button" aria-label="Show 01:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 02:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 03:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center">03</span>
+</button>
+
+<button type="button" aria-label="Show 04:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 05:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 06:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center">06</span>
+</button>
+
+<button type="button" aria-label="Show 07:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 08:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 09:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center">09</span>
+</button>
+
+<button type="button" aria-label="Show 10:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 11:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 85%; border: 1px dashed #A9B6C4; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 85%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 12:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 85%; border: 1px dashed #A9B6C4; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 85%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center">12</span>
+</button>
+
+<button type="button" aria-label="Show 13:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 85%; border: 1px dashed #A9B6C4; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 85%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 14:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 85%; border: 1px dashed #A9B6C4; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 70%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 2.859375%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 15:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center">15</span>
+</button>
+
+<button type="button" aria-label="Show 16:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 17:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 45%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 18:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 30%; border: 1px dashed #A9B6C4; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 30%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 52.5%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center">18</span>
+</button>
+
+<button type="button" aria-label="Show 19:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: rgba(245,158,11,0.16); opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 100%; border: 1px dashed #A9B6C4; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 100%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 20:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: rgba(245,158,11,0.16); opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 100%; border: 1px dashed #A9B6C4; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 100%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 60%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 21:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 80%; border: 1px dashed #A9B6C4; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 80%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 57.75%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center">21</span>
+</button>
+
+<button type="button" aria-label="Show 22:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: none">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 30%; border: 1px dashed #A9B6C4; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 15%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 7.21875%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A98A8; text-align: center"></span>
+</button>
+
+<button type="button" aria-label="Show 23:00" style="flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; opacity: 1; cursor: pointer; display: flex; flex-direction: column; gap: 8px; outline: 1px solid #F59E0B">
+<span style="width: 100%; height: 132px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-bottom: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span><span style="flex: 1; height: 0%; background: #F59E0B; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; gap: 1px"><span style="flex: 1; height: 0%; border: 0; border-top: 0; box-sizing: border-box; border-radius: 0 0 2px 2px"></span><span style="flex: 1; height: 0%; background: #3BA7FF; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="width: 100%; height: 112px; display: flex; flex-direction: column; position: relative">
+<span style="position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #2A3644"></span>
+<span style="height: 50%; display: flex; align-items: flex-end; justify-content: center"><span style="width: 70%; height: 0%; background: #3DDC97; border-radius: 2px 2px 0 0"></span></span>
+<span style="height: 50%; display: flex; align-items: flex-start; justify-content: center"><span style="width: 70%; height: 0%; background: #3BA7FF; opacity: 0.7; border-radius: 0 0 2px 2px"></span></span>
+</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #F59E0B; text-align: center"></span>
+</button>
+
+</div>
+</div>
+<p style="margin: 0; font-size: 12px; line-height: 1.5; color: #8A98A8">Your schedule: the fixed plan you ran before Pantheon (charge 11:00–15:00, discharge 10 MW 17:00–20:00, 4 MW at 20:00), entered during the diagnostic and run against the same actual prices. Hourly value counts solar kept for the battery at the node price and battery wear at 180 MXN per MWh discharged.</p>
+</section>
+
+<aside style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<section style="padding: 20px; background: #10161E; border: 1px solid #F59E0B; border-radius: 12px; display: flex; flex-direction: column; gap: 12px" aria-live="polite">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #F59E0B">23:00–00:00</span>
+<span style="font-size: 16px; line-height: 1.45">Neither plan moves the battery this hour.</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; font-size: 13px">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="color: #8A98A8">Price forecast</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px">1,180 MXN/MWh</span></span>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="color: #8A98A8">Price actual</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px">1,240 MXN/MWh</span></span>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="color: #8A98A8">Battery planned</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px">Idle</span></span>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="color: #8A98A8">Battery actual</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px">Idle</span></span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding-top: 10px; border-top: 1px solid #1C2530"><span style="font-size: 13px; color: #8A98A8">This hour</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 16px; color: #A9B6C4">0 MXN</span></div>
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px"><span style="font-size: 13px; color: #8A98A8">Running total vs your schedule</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; white-space: nowrap; color: #3DDC97">+9,705 MXN</span></div>
+</section>
+
+<section style="padding: 20px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 500">Why it beat the plan (plan vs actual)</h2>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #1C2530; font-size: 14px"><span>Evening prices came in above forecast, most at 20:00 (3,380 vs 3,080)</span><span style="font-family: 'IBM Plex Mono', monospace; color: #3DDC97; white-space: nowrap">+2,870</span></div>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #1C2530; font-size: 14px"><span>A cloud at 14:00 cut charging to 7 MW, so 1.5 MWh less to sell at 22:00</span><span style="font-family: 'IBM Plex Mono', monospace; color: #3BA7FF; white-space: nowrap">−1,395</span></div>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 14px; font-weight: 600"><span>Against the plan</span><span style="font-family: 'IBM Plex Mono', monospace; color: #3DDC97; white-space: nowrap">+1,475 MXN</span></div>
+</section>
+</aside>
+</div>
+
+<section style="padding: 20px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 500">The hours the battery worked</h2>
+<div style="overflow-x: auto">
+<div role="table" aria-label="The hours the battery worked" style="min-width: 720px; display: flex; flex-direction: column; font-size: 14px">
+<div role="row" style="display: grid; grid-template-columns: 96px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #1C2530"><span style="padding: 8px 10px; font-size: 12px; font-weight: 500; color: #8A98A8; text-align: left">Hour</span><span style="padding: 8px 10px; font-size: 12px; font-weight: 500; color: #8A98A8; text-align: right">Price forecast</span><span style="padding: 8px 10px; font-size: 12px; font-weight: 500; color: #8A98A8; text-align: right">Price actual</span><span style="padding: 8px 10px; font-size: 12px; font-weight: 500; color: #8A98A8; text-align: right">Offered MW</span><span style="padding: 8px 10px; font-size: 12px; font-weight: 500; color: #8A98A8; text-align: right">Cleared MW</span><span style="padding: 8px 10px; font-size: 12px; font-weight: 500; color: #8A98A8; text-align: right">Dispatched MW</span><span style="padding: 8px 10px; font-size: 12px; font-weight: 500; color: #8A98A8; text-align: right">vs your schedule</span><span style="padding: 8px 10px; font-size: 12px; font-weight: 500; color: #8A98A8; text-align: right">Running total</span></div>
+
+<div role="row" style="display: grid; grid-template-columns: 96px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #141C26; background: transparent"><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: left; color: #E6EDF5">11:00</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">610</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">640</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">-8.5</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">-8.5</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">-8.5</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #7CC4FF">0</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">0</span></div>
+
+<div role="row" style="display: grid; grid-template-columns: 96px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #141C26; background: transparent"><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: left; color: #E6EDF5">12:00</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">560</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">600</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">-8.5</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">-8.5</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">-8.5</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #7CC4FF">0</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">0</span></div>
+
+<div role="row" style="display: grid; grid-template-columns: 96px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #141C26; background: transparent"><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: left; color: #E6EDF5">13:00</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">540</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">520</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">-8.5</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">-8.5</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">-8.5</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #7CC4FF">0</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">0</span></div>
+
+<div role="row" style="display: grid; grid-template-columns: 96px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #141C26; background: transparent"><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: left; color: #E6EDF5">14:00</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">580</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">610</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">-8.5</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">-8.5</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #F59E0B">-7</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #3DDC97">+915</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">+915</span></div>
+
+<div role="row" style="display: grid; grid-template-columns: 96px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #141C26; background: transparent"><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: left; color: #E6EDF5">17:00</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">1,480</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">1,620</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">0</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">0</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">0</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #7CC4FF">−14,400</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">−13,485</span></div>
+
+<div role="row" style="display: grid; grid-template-columns: 96px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #141C26; background: transparent"><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: left; color: #E6EDF5">18:00</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">2,340</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">2,580</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">+3</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #F87171">+2 DEVIATION</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">+3</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #7CC4FF">−16,800</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">−30,285</span></div>
+
+<div role="row" style="display: grid; grid-template-columns: 96px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #141C26; background: rgba(245,158,11,0.08)"><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: left; color: #E6EDF5">19:00 ●</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">3,120</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">3,290</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">+10</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">+10</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">+10</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #7CC4FF">0</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">−30,285</span></div>
+
+<div role="row" style="display: grid; grid-template-columns: 96px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #141C26; background: rgba(245,158,11,0.08)"><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: left; color: #E6EDF5">20:00 ●</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">3,080</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">3,380</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">+10</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">+10</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">+10</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #3DDC97">+19,200</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">−11,085</span></div>
+
+<div role="row" style="display: grid; grid-template-columns: 96px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #141C26; background: transparent"><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: left; color: #E6EDF5">21:00</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">2,750</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">2,490</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">+8</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">+8</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">+8</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #3DDC97">+18,480</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">+7,395</span></div>
+
+<div role="row" style="display: grid; grid-template-columns: 96px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #141C26; background: transparent"><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: left; color: #E6EDF5">22:00</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">1,650</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">1,720</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">+3</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #A9B6C4">+3</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #F59E0B">+1.5</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #3DDC97">+2,310</span><span style="padding: 9px 10px; font-family: 'IBM Plex Mono', monospace; text-align: right; color: #E6EDF5">+9,705</span></div>
+
+</div>
+</div>
+<span style="font-size: 13px; color: #8A98A8">● = hour rated likely critical (≥ 50%). Final count when CENACE publishes the year’s critical hours, around February. Hours where neither plan moved the battery are left out. Prices in MXN/MWh.</span>
+</section>
+
+</div>
+</div>
+
+
+
+
+<div id="catalogue-bar" style="position:fixed;left:0;right:0;bottom:0;z-index:9999;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 16px;background:rgba(10,14,19,0.92);border-top:1px solid #1C2530;font:13px 'IBM Plex Sans',system-ui,sans-serif;color:#8A98A8;backdrop-filter:blur(6px)"><a href="index.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">&#8592; All screens</a><span style="color:#E6EDF5">Desktop · Review yesterday · Daily replay · yesterday</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 8px;border:1px dashed #2A3644;border-radius:999px">SAMPLE DATA · ILLUSTRATIVE</span><span style="flex:1"></span><a href="D-data-back.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">&#8592; Previous</a><a href="D-replay-history.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">Next &#8594;</a></div></body></html>

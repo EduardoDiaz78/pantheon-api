@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Pantheon · Settlement and revenue</title>
+
+<style>
+body{margin:0;background:#0A0E13}
+a{color:#C9D3DE}a:hover{color:#FFFFFF}
+</style><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"><style>body{padding-bottom:64px}</style></head>
+<body>
+
+
+<div style="min-height: 100vh; background: #0A0E13; color: #E6EDF5; font-family: 'IBM Plex Sans', system-ui, sans-serif; box-sizing: border-box">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 32px; border-bottom: 1px solid #1C2530">
+<div style="display: flex; align-items: center; gap: 28px; flex-wrap: wrap">
+<div style="display: flex; align-items: center; gap: 10px">
+<svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true"><path d="M2 9 L13 3 L24 9" stroke="#E6EDF5" stroke-width="1.6" stroke-linejoin="round"></path><path d="M5 11 V21 M10 11 V21 M16 11 V21 M21 11 V21" stroke="#E6EDF5" stroke-width="1.6"></path><path d="M2 23 H24" stroke="#E6EDF5" stroke-width="1.6"></path></svg>
+<span style="font-size: 18px; font-weight: 600; letter-spacing: 0.08em">PANTHEON</span>
+</div>
+<nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap">
+<a href="Main.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Today</a>
+<a href="Replay.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Yesterday</a>
+<a href="Fleet.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Fleet</a>
+<a href="Forecast.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Forecast</a>
+<a href="Settlement.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; background: #161E28; color: #FFFFFF; text-decoration: none; font-size: 14px; font-weight: 500">Settlement</a>
+<a href="Battery.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Battery</a>
+<a href="Simulate.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Simulate</a>
+<a href="Alerts.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Alerts <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: #F59E0B; color: #1A1206">4</span></a>
+<a href="Connections.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 14px">Connections</a>
+</nav>
+</div>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 6px 10px; border: 1px dashed #4A5868; border-radius: 999px; color: #A9B6C4">SAMPLE DATA · ILLUSTRATIVE</span>
+</header>
+
+<main style="max-width: 1440px; margin: 0 auto; padding: 28px 32px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #8A98A8">DEMO SITE · OCTOBER 2026 · MONTH TO DATE</span>
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.01em">Settlement &amp; revenue</h1>
+</div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<button type="button" style="min-height: 44px; padding: 0 18px; background: transparent; border: 1px solid #5C6B7D; border-radius: 8px; color: #E6EDF5; font-family: inherit; font-size: 14px; cursor: pointer">Export for accounting (CSV)</button>
+<button type="button" style="min-height: 44px; padding: 0 20px; background: #F59E0B; border: 0; border-radius: 8px; color: #1A1206; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Monthly report (PDF)</button>
+</div>
+</div>
+
+<section aria-label="Month to date" style="display: flex; flex-wrap: wrap; gap: 16px">
+<div style="flex: 1 1 220px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #8A98A8">Settled by CENACE</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500">558,350 <span style="font-size: 14px; color: #8A98A8">MXN</span></span>
+<span style="font-size: 13px; color: #A9B6C4">7 days with final statements</span>
+</div>
+<div style="flex: 1 1 220px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #8A98A8">Pantheon expected, same days</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500">565,200 <span style="font-size: 14px; color: #8A98A8">MXN</span></span>
+<span style="font-size: 13px; color: #A9B6C4">From the approved plan each day</span>
+</div>
+<div style="flex: 1 1 220px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #8A98A8">Difference</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500">-1.2%</span>
+<span style="font-size: 13px; color: #A9B6C4">Settled vs. expected</span>
+</div>
+<div style="flex: 1 1 220px; background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #8A98A8">Items to review</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500; color: #F59E0B">1</span>
+<span style="font-size: 13px; color: #A9B6C4">Days off by more than 3%</span>
+</div>
+</section>
+
+<section aria-label="Revenue breakdown" style="background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: baseline">
+<h2 style="margin: 0; font-size: 17px; font-weight: 500">Where the money came from, settled days</h2>
+<div style="display: flex; gap: 16px; font-size: 12px; color: #A9B6C4">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #3BA7FF"></span>Adds</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #F59E0B"></span>Costs</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #C9D3DE"></span>Totals</span>
+</div>
+</div>
+<div style="height: 230px; display: flex; gap: 16px; border-bottom: 1px solid #263240">
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 16%; right: 16%; bottom: 0.0%; height: 86.4%; background: #3BA7FF; border-radius: 2px"></span>
+<span style="position: absolute; left: 0; right: 0; bottom: calc(0.0% + 86.4% + 6px); text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px">+760,350</span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 16%; right: 16%; bottom: 65.2%; height: 21.2%; background: #F59E0B; border-radius: 2px"></span>
+<span style="position: absolute; left: 0; right: 0; bottom: calc(65.2% + 21.2% + 6px); text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px">−186,900</span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 16%; right: 16%; bottom: 63.4%; height: 1.7%; background: #F59E0B; border-radius: 2px"></span>
+<span style="position: absolute; left: 0; right: 0; bottom: calc(63.4% + 1.7% + 6px); text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px">−15,100</span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 16%; right: 16%; bottom: 0.0%; height: 63.4%; background: #C9D3DE; border-radius: 2px"></span>
+<span style="position: absolute; left: 0; right: 0; bottom: calc(0.0% + 63.4% + 6px); text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px">558,350</span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 16%; right: 16%; bottom: 58.8%; height: 4.7%; background: #F59E0B; border-radius: 2px"></span>
+<span style="position: absolute; left: 0; right: 0; bottom: calc(58.8% + 4.7% + 6px); text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px">−41,200</span>
+</div>
+
+<div style="flex: 1; min-width: 0; position: relative; height: 100%">
+<span style="position: absolute; left: 16%; right: 16%; bottom: 0.0%; height: 58.8%; background: #C9D3DE; border-radius: 2px"></span>
+<span style="position: absolute; left: 0; right: 0; bottom: calc(0.0% + 58.8% + 6px); text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px">517,150</span>
+</div>
+
+</div>
+<div style="display: flex; gap: 16px">
+
+<span style="flex: 1; min-width: 0; text-align: center; font-size: 13px; color: #A9B6C4; font-weight: 400">Discharge revenue</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-size: 13px; color: #A9B6C4; font-weight: 400">Charging cost</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-size: 13px; color: #A9B6C4; font-weight: 400">Market &amp; CENACE fees</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-size: 13px; color: #E6EDF5; font-weight: 600">Settled</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-size: 13px; color: #A9B6C4; font-weight: 400">Battery wear</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-size: 13px; color: #E6EDF5; font-weight: 600">Net after wear</span>
+
+</div>
+<p style="margin: 0; font-size: 13px; color: #8A98A8">CENACE doesn't bill battery wear. It's the cost of the battery life used up, so the last bar shows what these days really earned. MXN.</p>
+</section>
+
+<section aria-label="Expected versus settled chart" style="background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: baseline">
+<h2 style="margin: 0; font-size: 17px; font-weight: 500">Expected vs. settled, by day</h2>
+<div style="display: flex; gap: 16px; font-size: 12px; color: #A9B6C4">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #64748A"></span>Expected</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #3BA7FF"></span>Settled</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; border: 1px dashed #8A98A8"></span>Awaiting statement</span>
+</div>
+</div>
+<div style="height: 180px; display: flex; align-items: flex-end; gap: 14px; border-bottom: 1px solid #263240">
+
+<div style="flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px">
+<span style="width: 40%; height: 82.5%; background: #64748A; border-radius: 2px 2px 0 0"></span>
+<span style="width: 40%; height: 82.1%; background: #3BA7FF; border: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px">
+<span style="width: 40%; height: 85.5%; background: #64748A; border-radius: 2px 2px 0 0"></span>
+<span style="width: 40%; height: 84.6%; background: #3BA7FF; border: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px">
+<span style="width: 40%; height: 73.5%; background: #64748A; border-radius: 2px 2px 0 0"></span>
+<span style="width: 40%; height: 73.8%; background: #3BA7FF; border: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px">
+<span style="width: 40%; height: 97.2%; background: #64748A; border-radius: 2px 2px 0 0"></span>
+<span style="width: 40%; height: 91.5%; background: #3BA7FF; border: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px">
+<span style="width: 40%; height: 92.7%; background: #64748A; border-radius: 2px 2px 0 0"></span>
+<span style="width: 40%; height: 92.2%; background: #3BA7FF; border: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px">
+<span style="width: 40%; height: 78.4%; background: #64748A; border-radius: 2px 2px 0 0"></span>
+<span style="width: 40%; height: 78.0%; background: #3BA7FF; border: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px">
+<span style="width: 40%; height: 85.2%; background: #64748A; border-radius: 2px 2px 0 0"></span>
+<span style="width: 40%; height: 85.6%; background: #3BA7FF; border: 0; box-sizing: border-box; border-radius: 2px 2px 0 0"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px">
+<span style="width: 40%; height: 90.1%; background: #64748A; border-radius: 2px 2px 0 0"></span>
+<span style="width: 40%; height: 90.1%; background: transparent; border: 1px dashed #8A98A8; box-sizing: border-box; border-radius: 2px 2px 0 0"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px">
+<span style="width: 40%; height: 94.9%; background: #64748A; border-radius: 2px 2px 0 0"></span>
+<span style="width: 40%; height: 94.9%; background: transparent; border: 1px dashed #8A98A8; box-sizing: border-box; border-radius: 2px 2px 0 0"></span>
+</div>
+
+<div style="flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px">
+<span style="width: 40%; height: 87.7%; background: #64748A; border-radius: 2px 2px 0 0"></span>
+<span style="width: 40%; height: 87.7%; background: transparent; border: 1px dashed #8A98A8; box-sizing: border-box; border-radius: 2px 2px 0 0"></span>
+</div>
+
+</div>
+<div style="display: flex; gap: 14px">
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">1</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">2</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">3</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">4</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">5</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">6</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">7</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">8</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">9</span>
+
+<span style="flex: 1; min-width: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A98A8">10</span>
+
+</div>
+</section>
+
+<section aria-label="Daily statements" style="background: #10161E; border: 1px solid #1C2530; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0 0 6px; font-size: 17px; font-weight: 500">Daily statements</h2>
+<div style="overflow-x: auto">
+<div style="min-width: 760px; display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1fr 1.3fr 140px; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #1C2530; font-size: 12px; color: #8A98A8; letter-spacing: 0.04em">
+<span>DAY</span><span>EXPECTED (MXN)</span><span>SETTLED (MXN)</span><span>DIFFERENCE</span><span>STATUS</span><span></span>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1fr 1.3fr 140px; gap: 12px; align-items: center; min-height: 52px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span>1 Oct</span>
+<span style="font-family: 'IBM Plex Mono', monospace">78,400</span>
+<span style="font-family: 'IBM Plex Mono', monospace">77,950</span>
+<span style="font-family: 'IBM Plex Mono', monospace; color: #C9D3DE">-0.6%</span>
+<span style="color: #3DDC97">Matched</span>
+
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1fr 1.3fr 140px; gap: 12px; align-items: center; min-height: 52px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span>2 Oct</span>
+<span style="font-family: 'IBM Plex Mono', monospace">81,200</span>
+<span style="font-family: 'IBM Plex Mono', monospace">80,400</span>
+<span style="font-family: 'IBM Plex Mono', monospace; color: #C9D3DE">-1.0%</span>
+<span style="color: #3DDC97">Matched</span>
+
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1fr 1.3fr 140px; gap: 12px; align-items: center; min-height: 52px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span>3 Oct</span>
+<span style="font-family: 'IBM Plex Mono', monospace">69,800</span>
+<span style="font-family: 'IBM Plex Mono', monospace">70,100</span>
+<span style="font-family: 'IBM Plex Mono', monospace; color: #C9D3DE">+0.4%</span>
+<span style="color: #3DDC97">Matched</span>
+
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1fr 1.3fr 140px; gap: 12px; align-items: center; min-height: 52px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span>4 Oct</span>
+<span style="font-family: 'IBM Plex Mono', monospace">92,300</span>
+<span style="font-family: 'IBM Plex Mono', monospace">86,900</span>
+<span style="font-family: 'IBM Plex Mono', monospace; color: #F59E0B">-5.9%</span>
+<span style="color: #F59E0B">Review</span>
+
+<a href="#" style="display: inline-flex; align-items: center; min-height: 44px; font-size: 14px">Open dispute →</a>
+
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1fr 1.3fr 140px; gap: 12px; align-items: center; min-height: 52px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span>5 Oct</span>
+<span style="font-family: 'IBM Plex Mono', monospace">88,100</span>
+<span style="font-family: 'IBM Plex Mono', monospace">87,600</span>
+<span style="font-family: 'IBM Plex Mono', monospace; color: #C9D3DE">-0.6%</span>
+<span style="color: #3DDC97">Matched</span>
+
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1fr 1.3fr 140px; gap: 12px; align-items: center; min-height: 52px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span>6 Oct</span>
+<span style="font-family: 'IBM Plex Mono', monospace">74,500</span>
+<span style="font-family: 'IBM Plex Mono', monospace">74,100</span>
+<span style="font-family: 'IBM Plex Mono', monospace; color: #C9D3DE">-0.5%</span>
+<span style="color: #3DDC97">Matched</span>
+
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1fr 1.3fr 140px; gap: 12px; align-items: center; min-height: 52px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span>7 Oct</span>
+<span style="font-family: 'IBM Plex Mono', monospace">80,900</span>
+<span style="font-family: 'IBM Plex Mono', monospace">81,300</span>
+<span style="font-family: 'IBM Plex Mono', monospace; color: #C9D3DE">+0.5%</span>
+<span style="color: #3DDC97">Matched</span>
+
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1fr 1.3fr 140px; gap: 12px; align-items: center; min-height: 52px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span>8 Oct</span>
+<span style="font-family: 'IBM Plex Mono', monospace">85,600</span>
+<span style="font-family: 'IBM Plex Mono', monospace">—</span>
+<span style="font-family: 'IBM Plex Mono', monospace; color: #C9D3DE">—</span>
+<span style="color: #8A98A8">Awaiting statement</span>
+
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1fr 1.3fr 140px; gap: 12px; align-items: center; min-height: 52px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span>9 Oct</span>
+<span style="font-family: 'IBM Plex Mono', monospace">90,200</span>
+<span style="font-family: 'IBM Plex Mono', monospace">—</span>
+<span style="font-family: 'IBM Plex Mono', monospace; color: #C9D3DE">—</span>
+<span style="color: #8A98A8">Awaiting statement</span>
+
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr 1.2fr 1fr 1.3fr 140px; gap: 12px; align-items: center; min-height: 52px; border-bottom: 1px solid #161E28; font-size: 14px">
+<span>10 Oct</span>
+<span style="font-family: 'IBM Plex Mono', monospace">83,300</span>
+<span style="font-family: 'IBM Plex Mono', monospace">—</span>
+<span style="font-family: 'IBM Plex Mono', monospace; color: #C9D3DE">—</span>
+<span style="color: #8A98A8">Awaiting statement</span>
+
+</div>
+
+</div>
+</div>
+</section>
+
+</main>
+</div>
+
+
+
+
+<div id="catalogue-bar" style="position:fixed;left:0;right:0;bottom:0;z-index:9999;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 16px;background:rgba(10,14,19,0.92);border-top:1px solid #1C2530;font:13px 'IBM Plex Sans',system-ui,sans-serif;color:#8A98A8;backdrop-filter:blur(6px)"><a href="index.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">&#8592; All screens</a><span style="color:#E6EDF5">Desktop · Get paid · Settlement &amp; revenue</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 8px;border:1px dashed #2A3644;border-radius:999px">SAMPLE DATA · ILLUSTRATIVE</span><span style="flex:1"></span><a href="D-replay-pdf.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">&#8592; Previous</a><a href="D-statement-upload.html" style="color:#E6EDF5;text-decoration:none;padding:6px 10px;border:1px solid #2A3644;border-radius:6px;background:#10161E">Next &#8594;</a></div></body></html>
