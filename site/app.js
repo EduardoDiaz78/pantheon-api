@@ -198,6 +198,7 @@
     var links = partner ? [] : [["home", t("nav_home")], ["yesterday", t("nav_yesterday")], ["today", t("nav_today")], ["alerts", t("nav_alerts")], ["settlement", t("nav_settlement")], ["fleet", t("nav_fleet")]];
     if (!partner) links.push(["lines", t("nav_lines")]);
     if (can("qenergy.read")) links.push(["qenergy", t("nav_qenergy")]);
+    if (can("qenergy.read") || can("vispera.disclose")) links.push(["stamps", t("nav_stamps")]);
     if (can("qenergy.read") || can("vispera.disclose")) links.push(["timestamps", t("nav_ts")]);
     if (can("audit.read")) links.push(["audit", t("nav_audit")]);
     if (can("business.read")) links.push(["plan", t("nav_plan")]);
@@ -1448,20 +1449,177 @@
     });
   }
 
+  // ---------- Timestamps: anchoring progress for every chain entry ----------
+  Object.assign(T.en, {
+    nav_stamps: "Timestamps", s_eyebrow: "Víspera record · {site}", s_title: "Bitcoin timestamps",
+    s_lede: "Every entry's SHA-256 fingerprint is logged in Sigstore Rekor within seconds and anchored in the Bitcoin blockchain within hours. Once a block confirms it, nobody, Genau included, can change that entry without it showing.",
+    s_k_btc: "In a Bitcoin block", s_k_pend: "Waiting for a block", s_k_queue: "Being sent", s_k_fail: "Needs a retry",
+    s_k_btc_c: "Proven, checkable by anyone", s_k_pend_c: "Rekor has it; Bitcoin usually within hours", s_k_queue_c: "Sent seconds after arrival", s_k_fail_c: "Retried every 30 minutes",
+    s_progress: "Progress", s_of: "{n} of {t} entries anchored in Bitcoin",
+    s_latest: "Latest forecast, step by step", s_none: "No forecast in this chain yet.",
+    s_1: "Received", s_2: "Sealed and chained", s_3: "Logged in Rekor", s_4: "In a Bitcoin block",
+    s_2_d: "#{seq}, linked to #{prev}", s_3_wait: "Waiting for Rekor", s_4_wait: "Waiting for Bitcoin to confirm", s_block: "Block",
+    s_all: "Every entry", s_cols: ["Day", "Kind", "Recorded (Mexico City)", "Deadline", "SHA-256", "Status", "Bitcoin", ""],
+    s_ontime: "on time", s_late: "late", s_check: "Check", s_ok: "matches", s_bad: "doesn't match",
+    st_bitcoin: "In Bitcoin", st_pending: "Pending", st_queued: "Queued", st_failed: "Retry",
+    s_refresh: "Check Bitcoin now", s_refreshed: "{a} anchored, {p} still pending, {s} sent, {f} failed",
+    s_how: "Check it yourself, without trusting Genau",
+    s_how1: "Press Check on any row: your browser downloads the entry's exact content and recomputes its SHA-256 here, salt and link included.",
+    s_how2: "Download the .ots proof and the entry (the { } button), then drop both on opentimestamps.org, or run verify_vispera.py on the whole chain.",
+    s_how3: "The proof names the Bitcoin block and its time. If that time is before the day's market results, the forecast was made before anyone knew the answer.",
+    s_nocheck: "Opening sealed forecasts needs a client sign-in."
+  });
+  Object.assign(T.es, {
+    nav_stamps: "Sellos de tiempo", s_eyebrow: "Registro Víspera · {site}", s_title: "Sellos de tiempo en Bitcoin",
+    s_lede: "La huella SHA-256 de cada entrada se registra en Sigstore Rekor en segundos y se ancla en la cadena de bloques de Bitcoin en horas. Una vez confirmada en un bloque, nadie, ni Genau, puede cambiar esa entrada sin que se note.",
+    s_k_btc: "En un bloque de Bitcoin", s_k_pend: "Esperando bloque", s_k_queue: "Enviándose", s_k_fail: "Por reintentar",
+    s_k_btc_c: "Probado, verificable por cualquiera", s_k_pend_c: "Rekor ya la tiene; Bitcoin suele tardar horas", s_k_queue_c: "Se envía segundos después de llegar", s_k_fail_c: "Se reintenta cada 30 minutos",
+    s_progress: "Avance", s_of: "{n} de {t} entradas ancladas en Bitcoin",
+    s_latest: "Último pronóstico, paso a paso", s_none: "Aún no hay pronósticos en esta cadena.",
+    s_1: "Recibido", s_2: "Sellado y encadenado", s_3: "Registrado en Rekor", s_4: "En un bloque de Bitcoin",
+    s_2_d: "#{seq}, enlazado a #{prev}", s_3_wait: "Esperando a Rekor", s_4_wait: "Esperando confirmación de Bitcoin", s_block: "Bloque",
+    s_all: "Todas las entradas", s_cols: ["Día", "Tipo", "Registrado (CDMX)", "Límite", "SHA-256", "Estado", "Bitcoin", ""],
+    s_ontime: "a tiempo", s_late: "tarde", s_check: "Verificar", s_ok: "coincide", s_bad: "no coincide",
+    st_bitcoin: "En Bitcoin", st_pending: "Pendiente", st_queued: "En cola", st_failed: "Reintentar",
+    s_refresh: "Consultar Bitcoin ahora", s_refreshed: "{a} anclados, {p} pendientes, {s} enviados, {f} fallidos",
+    s_how: "Verifíquelo usted mismo, sin confiar en Genau",
+    s_how1: "Pulse Verificar en cualquier fila: su navegador descarga el contenido exacto de la entrada y recalcula su SHA-256 aquí mismo, con sal y enlace.",
+    s_how2: "Descargue la prueba .ots y la entrada (el botón { }), y suelte ambos en opentimestamps.org, o ejecute verify_vispera.py sobre toda la cadena.",
+    s_how3: "La prueba indica el bloque de Bitcoin y su hora. Si es anterior a los resultados del mercado de ese día, el pronóstico se hizo antes de que nadie supiera la respuesta.",
+    s_nocheck: "Abrir pronósticos sellados requiere un acceso de cliente."
+  });
+
+  var SCOL = { bitcoin: "var(--good)", pending: "var(--peak)", queued: "var(--charge)", failed: "var(--critical)" };
+  var stTimer = null;
+  function stOf(e) { var s = e.bitcoin.status; return s === "bitcoin" || s === "pending" || s === "failed" ? s : "queued"; }
+  function spill(st, sim) {
+    return '<span class="mono small" style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;border:1px solid ' + SCOL[st] + ";color:" + SCOL[st] +
+      ';white-space:nowrap"><span style="width:7px;height:7px;border-radius:50%;background:' + SCOL[st] + (st === "pending" || st === "queued" ? ";animation:tspulse 1.4s infinite" : "") + '"></span>' +
+      esc(t("st_" + st)) + (sim ? " ·" + esc(t("v_sim")).slice(0, 3) + "." : "") + "</span>";
+  }
+  function entryHash(e, doc) {
+    var saltP = Promise.resolve(new Uint8Array(0));
+    if (e.kind === "forecast") saltP = hmac(doc.chain_keys[e.target_day.slice(0, 7)], "salt|" + e.target_day + "|" + e.seq);
+    return saltP.then(function (s) {
+      return crypto.subtle.digest("SHA-256", cat(s, new TextEncoder().encode(e.content), e.prev ? bytesOf(e.prev) : new Uint8Array(32)));
+    }).then(hexOf);
+  }
+
+  function stampsPage() {
+    clearTimeout(stTimer);
+    return api("/v1/vispera/index").then(function (ix) {
+      if (!ix.chains.length) { frame("stamps", '<div class="card"><h2>' + esc(t("v_none")) + "</h2></div>", 0); return; }
+      var id = vsel.chain && ix.chains.some(function (c) { return c.id === vsel.chain; }) ? vsel.chain : ix.chains[0].id;
+      vsel.chain = id;
+      return Promise.all([api("/v1/vispera/chains/" + id), can("vispera.disclose") ? api("/v1/vispera/chains/" + id + "/disclosure").catch(function () { return null; }) : Promise.resolve(null)])
+        .then(function (r) { renderStamps(ix, r[0], r[1]); });
+    });
+  }
+
+  function renderStamps(ix, ch, disc) {
+    var tm = ch.terms, es = ch.entries, total = es.length, demo = !!tm.demo;
+    var c = { bitcoin: 0, pending: 0, queued: 0, failed: 0 };
+    es.forEach(function (e) { c[stOf(e)]++; });
+    var name = (tm.subject && (tm.subject.site || tm.subject.zona || tm.subject.nodo)) || ch.chain; name = name.charAt(0).toUpperCase() + name.slice(1);
+    var bar = ["bitcoin", "pending", "queued", "failed"].map(function (k) {
+      return c[k] ? '<span title="' + esc(t("st_" + k)) + " " + c[k] + '" style="width:' + (c[k] / total * 100).toFixed(2) + "%;background:" + SCOL[k] + ';display:inline-block;height:100%"></span>' : "";
+    }).join("");
+    var legend = ["bitcoin", "pending", "queued", "failed"].map(function (k) {
+      return '<span class="small" style="display:inline-flex;align-items:center;gap:6px;margin-right:16px"><span style="width:10px;height:10px;border-radius:3px;background:' + SCOL[k] + '"></span>' + esc(t("st_" + k)) + ' <span class="mono">' + c[k] + "</span></span>";
+    }).join("");
+    var fcs = es.filter(function (e) { return e.kind === "forecast"; }), L = fcs[fcs.length - 1], steps;
+    if (L) {
+      var st = stOf(L), reached = L.rekor.integrated_time ? (st === "bitcoin" ? 4 : 3) : 2;
+      var sim = L.rekor.simulated ? ' <span class="muted">(' + esc(t("v_sim")) + ")</span>" : "";
+      var S = [[t("s_1"), esc(dateTime(L.recorded_at)) + " · " + esc(L.target_day)],
+        [t("s_2"), '<span class="mono">' + esc(L.hash.slice(0, 12)) + "…</span><br>" + esc(fillT("s_2_d", { seq: L.seq, prev: L.seq - 1 }))],
+        [t("s_3"), L.rekor.integrated_time ? esc(dateTime(L.rekor.integrated_time)) + sim + (L.rekor.url ? ' <a class="mono" href="' + L.rekor.url + '" target="_blank" rel="noopener">#' + L.rekor.log_index + "</a>" : "") : esc(t("s_3_wait"))],
+        [t("s_4"), L.bitcoin.block_height ? esc(t("s_block")) + ' <a class="mono" href="https://blockstream.info/block-height/' + L.bitcoin.block_height + '" target="_blank" rel="noopener">#' + Number(L.bitcoin.block_height).toLocaleString(loc()) + "</a>" : (st === "bitcoin" ? esc(t("st_bitcoin")) + sim : esc(t("s_4_wait")))]];
+      steps = '<ol class="tssteps">' + S.map(function (x, i) {
+        var cls = i < reached ? "done" : (i === reached ? (st === "failed" ? "fail" : "now") : "");
+        return '<li class="' + cls + '"><span class="dot">' + (i < reached ? "✓" : i + 1) + "</span><div><strong>" + esc(x[0]) + '</strong><div class="small muted">' + x[1] + "</div></div></li>";
+      }).join("") + '</ol><p class="small muted" style="margin:8px 0 0">' + esc(dateLong(L.target_day)) + "</p>";
+    } else steps = '<p class="muted" style="margin:0">' + esc(t("s_none")) + "</p>";
+    var rows = es.slice().reverse().map(function (e) {
+      var dl = e.kind !== "forecast" ? '<span class="muted">—</span>' : e.rekor_before_cutoff ? '<span style="color:var(--good)">✓ ' + esc(t("s_ontime")) + "</span>" : e.rekor_before_cutoff === false ? '<span style="color:var(--critical)">' + esc(t("s_late")) + "</span>" : '<span class="muted">' + esc(t("v_wait")) + "</span>";
+      var openable = e.kind !== "forecast" || disc;
+      return "<tr" + (e.kind === "terms" ? ' style="opacity:.75"' : "") + '><td class="mono">' + esc(e.target_day) + '</td><td><span class="mono small" style="padding:2px 8px;border-radius:999px;border:1px solid ' + KCOL[e.kind] + ";color:" + KCOL[e.kind] + '">#' + e.seq + " " + esc(t("k_" + e.kind)) + "</span></td>" +
+        '<td class="mono small">' + esc(dateTime(e.recorded_at)) + '</td><td class="small">' + dl + '</td><td class="mono small" title="' + e.hash + '">' + e.hash.slice(0, 10) + "…</td><td>" + spill(stOf(e), e.bitcoin.simulated) + "</td>" +
+        "<td>" + (e.bitcoin.block_height ? '<a class="mono" href="https://blockstream.info/block-height/' + e.bitcoin.block_height + '" target="_blank" rel="noopener">#' + Number(e.bitcoin.block_height).toLocaleString(loc()) + "</a>" : '<span class="muted">—</span>') +
+        '</td><td style="white-space:nowrap">' + (openable ? '<button class="btn" type="button" data-scheck="' + e.seq + '">' + esc(t("s_check")) + "</button> " : "") +
+        (e.bitcoin.proof_url ? '<button class="btn" type="button" data-sots="' + e.seq + '">.ots</button> ' : "") +
+        (openable ? '<button class="btn" type="button" data-sjson="' + e.seq + '">{ }</button> ' : "") + '<span class="small" data-sres="' + e.seq + '"></span></td></tr>';
+    }).join("");
+    frame("stamps",
+      '<style>@keyframes tspulse{0%,100%{opacity:1}50%{opacity:.25}}' +
+      '.tssteps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}' +
+      '.tssteps li{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:10px;background:var(--bg-300);border:1px solid var(--line-subtle)}' +
+      '.tssteps .dot{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-size:13px;border:1px solid var(--line-control);color:var(--ink-3)}' +
+      '.tssteps li.done{border-color:var(--good)}.tssteps li.done .dot{background:var(--good);border-color:var(--good);color:#06150E}' +
+      '.tssteps li.now{border-color:var(--peak)}.tssteps li.now .dot{border-color:var(--peak);color:var(--peak);animation:tspulse 1.4s infinite}' +
+      '.tssteps li.fail{border-color:var(--critical)}.tssteps li.fail .dot{border-color:var(--critical);color:var(--critical)}' +
+      '@media (max-width:720px){.tssteps{grid-template-columns:1fr 1fr}.tstable thead{display:none}.tstable,.tstable tbody{display:block;min-width:0}.tstable tr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:12px 0;border-bottom:1px solid var(--line-subtle)}.tstable td{display:block;padding:0;border:0}.tstable td:last-child{flex-basis:100%}}' +
+      '@media (max-width:420px){.tssteps{grid-template-columns:1fr}}</style>' +
+      '<div class="head"><div><div class="eyebrow">' + esc(fillT("s_eyebrow", { site: name })) + '</div><h1 class="title">' + esc(t("s_title")) + '</h1><p class="muted" style="margin:4px 0 0;max-width:760px">' + esc(t("s_lede")) + "</p></div>" +
+      (can("forecast.write") && !demo ? '<button class="btn primary" type="button" data-srefresh>' + esc(t("s_refresh")) + "</button>" : "") + "</div>" +
+      (ix.chains.length > 1 ? '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="small muted">' + esc(t("v_chains")) + "</span>" + ix.chains.map(function (x) {
+        return '<button class="btn' + (x.id === ch.chain ? " primary" : "") + '" type="button" data-schain="' + esc(x.id) + '">' + esc(x.id) + "</button>"; }).join("") + "</div>" : "") +
+      (demo ? '<div class="banner" style="background:var(--peak-tint);border:1px solid var(--peak)"><span>' + esc(t("v_demo")) + "</span></div>" : "") +
+      '<div class="row" style="gap:12px">' + kpi(t("s_k_btc"), '<span style="color:var(--good)">' + c.bitcoin + "</span>", esc(t("s_k_btc_c"))) +
+      kpi(t("s_k_pend"), '<span style="color:var(--peak)">' + c.pending + "</span>", esc(t("s_k_pend_c"))) +
+      kpi(t("s_k_queue"), '<span style="color:var(--charge)">' + c.queued + "</span>", esc(t("s_k_queue_c"))) +
+      kpi(t("s_k_fail"), '<span style="color:var(--critical)">' + c.failed + "</span>", esc(t("s_k_fail_c"))) + "</div>" +
+      '<section class="card"><div class="head" style="align-items:baseline"><h2>' + esc(t("s_progress")) + '</h2><span class="small muted">' + esc(fillT("s_of", { n: c.bitcoin, t: total })) + "</span></div>" +
+      '<div class="bar" style="height:14px;border-radius:7px;display:flex">' + bar + '</div><div style="margin-top:10px">' + legend + "</div></section>" +
+      '<section class="card"><h2>' + esc(t("s_latest")) + "</h2>" + steps + "</section>" +
+      '<section class="card"><h2>' + esc(t("s_all")) + '</h2>' + (disc ? "" : '<p class="small muted" style="margin:0">' + esc(t("s_nocheck")) + "</p>") +
+      '<div class="tablewrap"><table class="tstable"><thead><tr>' + t("s_cols").map(function (x) { return "<th>" + esc(x) + "</th>"; }).join("") + "</tr></thead><tbody>" + rows + "</tbody></table></div></section>" +
+      '<section class="card"><h2>' + esc(t("s_how")) + '</h2><ol class="small" style="margin:0;padding-left:20px;line-height:1.7"><li>' + esc(t("s_how1")) + "</li><li>" + esc(t("s_how2")) + "</li><li>" + esc(t("s_how3")) + "</li></ol></section>", 0);
+    var root = document.getElementById("app");
+    var bySeq = function (seq) { var src = disc ? disc.entries : es; return src.filter(function (x) { return x.seq === Number(seq); })[0]; };
+    root.querySelectorAll("[data-schain]").forEach(function (b) { b.addEventListener("click", function () { vsel.chain = b.dataset.schain; route(); }); });
+    root.querySelectorAll("[data-scheck]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var e = bySeq(b.dataset.scheck), out = root.querySelector('[data-sres="' + b.dataset.scheck + '"]');
+        entryHash(e, disc || {}).then(function (h) {
+          out.innerHTML = h === e.hash ? '<span style="color:var(--good)">✓ ' + esc(t("s_ok")) + "</span>" : '<span style="color:var(--critical)">✗ ' + esc(t("s_bad")) + "</span>";
+        });
+      });
+    });
+    root.querySelectorAll("[data-sjson]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var e = bySeq(b.dataset.sjson), a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([e.content], { type: "application/json" })); a.download = ch.chain + "-" + e.seq + ".json";
+        document.body.appendChild(a); a.click(); a.remove();
+      });
+    });
+    root.querySelectorAll("[data-sots]").forEach(function (b) {
+      b.addEventListener("click", function () { download("/v1/vispera/chains/" + ch.chain + "/entries/" + b.dataset.sots + "/proof.ots", ch.chain + "-" + b.dataset.sots + ".ots"); });
+    });
+    var rb = root.querySelector("[data-srefresh]");
+    if (rb) rb.addEventListener("click", function () {
+      rb.disabled = true;
+      api("/v1/vispera/refresh", { method: "POST" }).then(function (o) {
+        toast(fillT("s_refreshed", { a: o.anchored || 0, p: o.still_pending || 0, s: o.stamped || 0, f: o.failed || 0 })); route();
+      }, function (e) { rb.disabled = false; toast(e.message, true); });
+    });
+    if (!demo && (c.queued || c.pending)) stTimer = setTimeout(function () { if (currentRoute().name === "stamps") route(); }, 60000);
+  }
+
   // ---------- Routing ----------
   function currentRoute() {
     var parts = (location.hash || "#/home").replace(/^#\/?/, "").split("/");
     return { name: parts[0] || "home", arg: parts[1] };
   }
-  var PAGES = { home: homePage, yesterday: yesterdayPage, today: todayPage, alerts: alertsPage, settlement: settlementPage, fleet: fleetPage, audit: auditPage, lines: linesPage, plan: planPage, model: modelPage, qenergy: qenergyPage, timestamps: timestampsPage };
+  var PAGES = { home: homePage, yesterday: yesterdayPage, today: todayPage, alerts: alertsPage, settlement: settlementPage, fleet: fleetPage, audit: auditPage, lines: linesPage, plan: planPage, model: modelPage, qenergy: qenergyPage, timestamps: timestampsPage, stamps: stampsPage };
 
   function route() {
     stopReplay();
     if (!state.key) { signinPage(); return; }
     if (!state.me) { signIn(state.key); return; }
     var r = currentRoute(), page = PAGES[r.name] || homePage;
-    if (state.me.user.role === "partner" && r.name !== "qenergy" && r.name !== "timestamps") { page = qenergyPage; r = { name: "qenergy" }; }
-    if (state.me.user.role === "client" && r.name !== "timestamps") { page = timestampsPage; r = { name: "timestamps" }; }
+    if (state.me.user.role === "partner" && r.name !== "qenergy" && r.name !== "timestamps" && r.name !== "stamps") { page = qenergyPage; r = { name: "qenergy" }; }
+    if (state.me.user.role === "client" && r.name !== "timestamps" && r.name !== "stamps") { page = timestampsPage; r = { name: "timestamps" }; }
     page(r.arg).catch(function (e) {
       if (e && e.status === 401) { state.key = null; state.me = null; save("key", null); signinPage(); return; }
       errorPage(e || {});
