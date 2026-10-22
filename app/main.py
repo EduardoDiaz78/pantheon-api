@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .auth import Caller, current, get_store
 
 from . import errors
-from .routers import alerts, cenace, channels, finance, integrations, me, plans, products, sites
+from .routers import alerts, cenace, channels, finance, integrations, me, plans, products, qenergy, sites
 
 DESCRIPTION = """
 Client API for Pantheon, Genau AI's forecasting and dispatch platform for solar + battery plants and battery fleets in Mexico.
@@ -49,6 +49,10 @@ channel. Plans that need a sign-off can only be approved in the app.
 
 **Units.** MXN, MXN/MWh, MW (positive = discharge, negative = charge), MWh, plant local time (America/Mexico_City).
 
+**QEnergy.** The Pantheon engine posts each day's hourly forecast to `POST /v1/qenergy/sites/{site}/forecasts/{day}` (role
+`engine`). QEnergy downloads the sales offer (`…/offers/{day}/venta.xlsx`) and the purchase offer (`…/offers/{day}/compra.xlsx`)
+in its own templates, and the monthly settlement (`…/settlements?month=`). Every forecast version is kept with its SHA-256.
+
 **Product lines.** `GET /v1/products` lists the nine lines Genau offers in Mexico (battery optimization, plant
 forecasting, critical-hour service, supplier and trader forecasts, white-label, bankability, revenue floors, grid forecasting,
 Genau Mexico with QEnergy); `GET /v1/products/{id}` adds sample figures for its screen. `GET /v1/business/plan` is the
@@ -66,7 +70,7 @@ errors.install(app)
 _origins = [o.strip().rstrip("/") for o in os.getenv("ALLOWED_ORIGINS", "*").split(",") if o.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=_origins, allow_methods=["GET", "POST", "PUT", "DELETE"],
                    allow_headers=["X-API-Key", "Content-Type", "Accept-Language"], expose_headers=["Content-Disposition"], max_age=3600)
-for r in (me.router, sites.router, plans.router, cenace.router, alerts.router, finance.router, channels.router, integrations.router, products.router):
+for r in (me.router, sites.router, plans.router, cenace.router, alerts.router, finance.router, channels.router, integrations.router, products.router, qenergy.router):
     app.include_router(r)
 
 

@@ -12,7 +12,8 @@
     { key: "demo-manager", name: "Mauricio", role: "asset_manager" },
     { key: "demo-viewer", name: "Lucía", role: "viewer" },
     { key: "demo-auditor", name: "Andrés", role: "auditor" },
-    { key: "demo-admin", name: "Genau", role: "admin" }
+    { key: "demo-admin", name: "Genau", role: "admin" },
+    { key: "demo-qenergy", name: "José Antonio", role: "partner" }
   ];
 
   // ---------- Interface words (the API translates its own messages) ----------
@@ -192,8 +193,10 @@
   }
 
   function frame(route, body, openAlerts) {
-    var links = [["home", t("nav_home")], ["yesterday", t("nav_yesterday")], ["today", t("nav_today")], ["alerts", t("nav_alerts")], ["settlement", t("nav_settlement")], ["fleet", t("nav_fleet")]];
-    links.push(["lines", t("nav_lines")]);
+    var partner = state.me.user.role === "partner";
+    var links = partner ? [] : [["home", t("nav_home")], ["yesterday", t("nav_yesterday")], ["today", t("nav_today")], ["alerts", t("nav_alerts")], ["settlement", t("nav_settlement")], ["fleet", t("nav_fleet")]];
+    if (!partner) links.push(["lines", t("nav_lines")]);
+    if (can("qenergy.read")) links.push(["qenergy", t("nav_qenergy")]);
     if (can("audit.read")) links.push(["audit", t("nav_audit")]);
     if (can("business.read")) links.push(["plan", t("nav_plan")]);
     if (can("business.read")) links.push(["model", mt("nav_model")]);
@@ -201,7 +204,7 @@
       var badge = l[0] === "alerts" && openAlerts ? ' <span class="badge">' + openAlerts + "</span>" : "";
       return '<a href="#/' + l[0] + '"' + (route === l[0] ? ' aria-current="page"' : "") + ">" + esc(l[1]) + badge + "</a>";
     }).join("");
-    nav += '<a href="screens/index.html" title="' + (state.lang === "es" ? "Todas las pantallas diseñadas, en orden de recorrido" : "Every designed screen, in journey order") + '">' + (state.lang === "es" ? "Todas las pantallas" : "All screens") + "</a>";
+    if (!partner) nav += '<a href="screens/index.html" title="' + (state.lang === "es" ? "Todas las pantallas diseñadas, en orden de recorrido" : "Every designed screen, in journey order") + '">' + (state.lang === "es" ? "Todas las pantallas" : "All screens") + "</a>";
     var u = state.me.user;
     app.innerHTML =
       '<header class="top"><div class="brand">' + LOGO + "PANTHEON</div>" +
@@ -1125,18 +1128,136 @@
     });
   }
 
+
+  // ---------- QEnergy: offer files and settlements ----------
+  Object.assign(T.en, {
+    nav_qenergy: "QEnergy", role_partner: "QEnergy (Market Participant)", role_partner_d: "Downloads Atotonilco's offer files and settlements.",
+    q_title: "Offers for QEnergy", q_lede: "Pantheon's forecast for each day, in QEnergy's own templates. QEnergy submits to CENACE; Pantheon never does.",
+    q_day: "Operating day", q_sale: "Sales offer (Oferta No Despachable)", q_sale_d: "One day, plant {central}, unit {unidad}.",
+    q_buy: "Purchase offer (Oferta de Compra)", q_buy_d: "Load centre {cc}. Same hourly profile for each day in the range.", q_days: "Days",
+    q_download: "Download .xlsx", q_received: "Forecast received", q_version: "version", q_model: "model", q_fp: "SHA-256",
+    q_sample: "Sample forecast. The Pantheon engine's forecasts replace it once connected.",
+    q_hour: "Hour", q_sell: "Sale MW", q_price: "Price MXN/MWh", q_fixed: "Fixed purchase MW", q_segs: "Purchase blocks",
+    q_total: "Total MWh offered", q_peak: "Peak hour", q_settle: "Settlement", q_month: "Month",
+    q_settle_d: "Day-ahead revenue = cleared MW × day-ahead price. Real-time deviation = (metered − cleared) × real-time price. MXN.",
+    q_none: "No results posted for this month yet.", q_csv: "Download .csv",
+    q_cols: ["Day", "Offered MWh", "Cleared MWh", "Metered MWh", "Day-ahead MXN", "Real-time dev. MXN", "Total MXN"],
+    q_no_fc: "No forecast for this day yet."
+  });
+  Object.assign(T.es, {
+    nav_qenergy: "QEnergy", role_partner: "QEnergy (Participante del Mercado)", role_partner_d: "Descarga las ofertas y liquidaciones de Atotonilco.",
+    q_title: "Ofertas para QEnergy", q_lede: "El pronóstico de Pantheon de cada día, en las plantillas de QEnergy. QEnergy presenta al CENACE; Pantheon nunca lo hace.",
+    q_day: "Día de operación", q_sale: "Oferta de venta (Oferta No Despachable)", q_sale_d: "Un día, central {central}, unidad {unidad}.",
+    q_buy: "Oferta de compra", q_buy_d: "Centro de carga {cc}. Mismo perfil horario para cada día del rango.", q_days: "Días",
+    q_download: "Descargar .xlsx", q_received: "Pronóstico recibido", q_version: "versión", q_model: "modelo", q_fp: "SHA-256",
+    q_sample: "Pronóstico de ejemplo. Los pronósticos del motor de Pantheon lo reemplazan al conectarse.",
+    q_hour: "Hora", q_sell: "Venta MW", q_price: "Precio MXN/MWh", q_fixed: "Compra fija MW", q_segs: "Bloques de compra",
+    q_total: "Total MWh ofertados", q_peak: "Hora pico", q_settle: "Liquidación", q_month: "Mes",
+    q_settle_d: "Ingreso MDA = MW asignados × PML MDA. Desviación MTR = (medido − asignado) × PML MTR. MXN.",
+    q_none: "Aún no hay resultados para este mes.", q_csv: "Descargar .csv",
+    q_cols: ["Día", "Ofertado MWh", "Asignado MWh", "Medido MWh", "Ingreso MDA", "Desviación MTR", "Total MXN"],
+    q_no_fc: "Aún no hay pronóstico para este día."
+  });
+
+  function download(path, fallbackName) {
+    var slow = setTimeout(function () { wake.hidden = false; }, 2500);
+    return fetch(API + path, { headers: { "X-API-Key": state.key || "", "Accept-Language": state.lang === "es" ? "es-MX" : "en" } }).then(function (r) {
+      clearTimeout(slow); wake.hidden = true;
+      if (!r.ok) return r.json().then(function (j) { throw j.error || { message: "Error " + r.status }; });
+      var cd = r.headers.get("Content-Disposition") || "", m = /filename="([^"]+)"/.exec(cd);
+      return r.blob().then(function (b) {
+        var a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = m ? m[1] : fallbackName;
+        document.body.appendChild(a); a.click(); a.remove();
+      });
+    }).catch(function (e) { clearTimeout(slow); wake.hidden = true; toast((e && e.message) || t("err_network"), true); });
+  }
+
+  var qsel = { site: "atotonilco", days: 7 };
+  function qenergyPage(arg) {
+    var site = qsel.site, base = "/v1/qenergy/sites/" + site;
+    return Promise.all([api("/v1/qenergy/sites"), api(base + "/forecasts")]).then(function (r) {
+      var s = r[0].filter(function (x) { return x.id === site; })[0] || r[0][0];
+      var list = r[1], day = arg || (list[0] && list[0].day);
+      var month = (qsel.month || (day || "2026-10-01").slice(0, 7));
+      return Promise.all([day ? api(base + "/forecasts/" + day).catch(function () { return null; }) : Promise.resolve(null),
+        api(base + "/settlements?month=" + month)]).then(function (x) { return [s, list, day, x[0], x[1], month]; });
+    }).then(function (v) {
+      var s = v[0], list = v[1], day = v[2], f = v[3], st = v[4], month = v[5];
+      var fill = function (k, o) { return t(k).replace(/\{(\w+)\}/g, function (_, n) { return o[n]; }); };
+      var opts = list.map(function (d) { return '<option value="' + d.day + '"' + (d.day === day ? " selected" : "") + ">" + esc(dateLong(d.day)) + "</option>"; }).join("");
+      var meta = f ? '<p class="small muted mono" style="margin:0">' + esc(t("q_received")) + " " + esc(dateTime(f.received_at)) + " · " + esc(t("q_version")) + " " + f.version +
+        " · " + esc(t("q_model")) + " " + esc(f.model_version) + " · " + esc(t("q_fp")) + " " + esc(f.sha256.slice(0, 16)) + "…</p>" +
+        (f.sample ? '<div class="banner" style="background:var(--peak-tint);border:1px solid var(--peak)"><span>' + esc(t("q_sample")) + "</span></div>" : "") : "";
+      var hrs = f ? f.hours : [];
+      var tot = hrs.reduce(function (a, h) { return a + h.sell_mw; }, 0);
+      var peak = hrs.reduce(function (a, h) { return h.sell_mw > a.sell_mw ? h : a; }, { sell_mw: -1, hour: 0 });
+      var maxMw = Math.max.apply(null, hrs.map(function (h) { return h.sell_mw; }).concat([0.0001]));
+      var rows = hrs.map(function (h) {
+        return '<tr><td class="mono">' + h.hour + '</td><td><span style="display:inline-block;height:8px;border-radius:2px;background:var(--charge);width:' + (h.sell_mw / maxMw * 80).toFixed(1) + 'px;margin-right:8px"></span><span class="mono">' + num(h.sell_mw, 3) +
+          '</span></td><td class="mono">' + num(h.sell_price, 0) + '</td><td class="mono">' + num(h.buy_fixed_mw, 3) + '</td><td class="mono small">' +
+          (h.buy_segments.length ? h.buy_segments.map(function (g) { return num(g.mw, 3) + " MW @ " + num(g.price, 0); }).join(" · ") : "—") + "</td></tr>";
+      }).join("");
+      var daysSel = '<select data-qdays style="background:var(--bg-300);color:var(--ink);border:1px solid var(--line-control);border-radius:6px;min-height:40px;padding:0 8px">' +
+        [1, 2, 3, 4, 5, 6, 7].map(function (n) { return "<option" + (n === qsel.days ? " selected" : "") + ">" + n + "</option>"; }).join("") + "</select>";
+      var months = ["2026-09", "2026-10", "2026-11", "2026-12", "2027-01"];
+      if (months.indexOf(month) < 0) months.push(month);
+      var mSel = '<select data-qmonth style="background:var(--bg-300);color:var(--ink);border:1px solid var(--line-control);border-radius:6px;min-height:40px;padding:0 8px">' +
+        months.map(function (m) { return "<option" + (m === month ? " selected" : "") + ">" + m + "</option>"; }).join("") + "</select>";
+      var srows = st.days.map(function (d) {
+        return '<tr><td class="mono">' + d.day + "</td>" + ["offered_mwh", "cleared_mwh", "measured_mwh"].map(function (k) { return '<td class="mono" style="text-align:right">' + num(d[k], 3) + "</td>"; }).join("") +
+          ["mda_mxn", "mtr_mxn", "total_mxn"].map(function (k) { return '<td class="mono' + (d[k] < 0 ? " bad" : "") + '" style="text-align:right">' + num(d[k], 0) + "</td>"; }).join("") + "</tr>";
+      }).join("");
+      var sum = function (k) { return st.days.reduce(function (a, d) { return a + d[k]; }, 0); };
+      var stot = st.days.length ? '<tr class="tot"><td><strong>Total</strong></td>' + ["offered_mwh", "cleared_mwh", "measured_mwh"].map(function (k) { return '<td class="mono" style="text-align:right"><strong>' + num(sum(k), 3) + "</strong></td>"; }).join("") +
+        ["mda_mxn", "mtr_mxn", "total_mxn"].map(function (k) { return '<td class="mono" style="text-align:right"><strong>' + num(sum(k), 0) + "</strong></td>"; }).join("") + "</tr>" : "";
+      var cols = t("q_cols");
+      frame("qenergy",
+        '<div class="head"><div><div class="eyebrow">' + esc(s.market_participant) + " · " + esc(s.name) + '</div><h1 class="title">' + esc(t("q_title")) + '</h1><p class="muted" style="margin:4px 0 0">' + esc(t("q_lede")) + "</p></div></div>" +
+        '<section class="card"><label class="small muted" for="qday">' + esc(t("q_day")) + '</label><select id="qday" data-qday style="background:var(--bg-300);color:var(--ink);border:1px solid var(--line-control);border-radius:6px;min-height:44px;padding:0 10px;font:inherit;max-width:360px">' + opts + "</select>" + meta + "</section>" +
+        (f ? '<div class="row" style="align-items:stretch">' +
+          '<section class="card"><h2>' + esc(t("q_sale")) + '</h2><p class="small muted" style="margin:0">' + esc(fill("q_sale_d", s)) + '</p><div class="row" style="gap:12px">' +
+          kpi(t("q_total"), num(tot, 3), "") + kpi(t("q_peak"), peak.hour ? hh(peak.hour - 1).replace(":00", "") + "–" + peak.hour + " h" : "—", num(Math.max(peak.sell_mw, 0), 3) + " MW") + '</div><button class="btn primary" type="button" data-qdl="venta">' + esc(t("q_download")) + "</button></section>" +
+          '<section class="card"><h2>' + esc(t("q_buy")) + '</h2><p class="small muted" style="margin:0">' + esc(fill("q_buy_d", { cc: s.centro_carga })) + '</p><label class="small muted">' + esc(t("q_days")) + " " + daysSel + "</label>" +
+          '<button class="btn primary" type="button" data-qdl="compra">' + esc(t("q_download")) + "</button></section></div>" +
+          '<section class="card"><div class="tablewrap"><table><thead><tr><th>' + esc(t("q_hour")) + "</th><th>" + esc(t("q_sell")) + "</th><th>" + esc(t("q_price")) + "</th><th>" + esc(t("q_fixed")) + "</th><th>" + esc(t("q_segs")) + "</th></tr></thead><tbody>" + rows + "</tbody></table></div></section>"
+          : '<div class="card"><h2>' + esc(t("q_no_fc")) + "</h2></div>") +
+        '<section class="card"><div class="head" style="align-items:center"><h2>' + esc(t("q_settle")) + '</h2><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="small muted">' + esc(t("q_month")) + "</span>" + mSel +
+        '<button class="btn" type="button" data-qdl="liq-xlsx">' + esc(t("q_download")) + '</button><button class="btn" type="button" data-qdl="liq-csv">' + esc(t("q_csv")) + "</button></div></div>" +
+        '<p class="small muted" style="margin:0">' + esc(t("q_settle_d")) + (st.sample_data ? " · " + esc(t("sample")) : "") + "</p>" +
+        (st.days.length ? '<div class="tablewrap"><table class="mtable"><thead><tr>' + cols.map(function (c, i) { return "<th" + (i ? ' style="text-align:right"' : "") + ">" + esc(c) + "</th>"; }).join("") + "</tr></thead><tbody>" + srows + stot + "</tbody></table></div>"
+          : '<p class="muted">' + esc(t("q_none")) + "</p>") + "</section>", 0);
+      var root = document.getElementById("app");
+      var dsel = root.querySelector("[data-qday]");
+      if (dsel) dsel.addEventListener("change", function () { location.hash = "#/qenergy/" + dsel.value; });
+      var nsel = root.querySelector("[data-qdays]");
+      if (nsel) nsel.addEventListener("change", function () { qsel.days = Number(nsel.value); });
+      var msel = root.querySelector("[data-qmonth]");
+      if (msel) msel.addEventListener("change", function () { qsel.month = msel.value; route(); });
+      root.querySelectorAll("[data-qdl]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var k = b.dataset.qdl;
+          if (k === "venta") download("/v1/qenergy/sites/" + site + "/offers/" + day + "/venta.xlsx", "venta.xlsx");
+          if (k === "compra") download("/v1/qenergy/sites/" + site + "/offers/" + day + "/compra.xlsx?days=" + qsel.days, "compra.xlsx");
+          if (k === "liq-xlsx") download("/v1/qenergy/sites/" + site + "/settlements?month=" + month + "&format=xlsx", "liquidacion.xlsx");
+          if (k === "liq-csv") download("/v1/qenergy/sites/" + site + "/settlements?month=" + month + "&format=csv", "liquidacion.csv");
+        });
+      });
+    });
+  }
+
   // ---------- Routing ----------
   function currentRoute() {
     var parts = (location.hash || "#/home").replace(/^#\/?/, "").split("/");
     return { name: parts[0] || "home", arg: parts[1] };
   }
-  var PAGES = { home: homePage, yesterday: yesterdayPage, today: todayPage, alerts: alertsPage, settlement: settlementPage, fleet: fleetPage, audit: auditPage, lines: linesPage, plan: planPage, model: modelPage };
+  var PAGES = { home: homePage, yesterday: yesterdayPage, today: todayPage, alerts: alertsPage, settlement: settlementPage, fleet: fleetPage, audit: auditPage, lines: linesPage, plan: planPage, model: modelPage, qenergy: qenergyPage };
 
   function route() {
     stopReplay();
     if (!state.key) { signinPage(); return; }
     if (!state.me) { signIn(state.key); return; }
     var r = currentRoute(), page = PAGES[r.name] || homePage;
+    if (state.me.user.role === "partner" && r.name !== "qenergy") { page = qenergyPage; r = { name: "qenergy" }; }
     page(r.arg).catch(function (e) {
       if (e && e.status === 401) { state.key = null; state.me = null; save("key", null); signinPage(); return; }
       errorPage(e || {});

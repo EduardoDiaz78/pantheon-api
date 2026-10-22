@@ -18,6 +18,8 @@ class Role(str, Enum):
     operator = "operator"
     asset_manager = "asset_manager"
     admin = "admin"
+    engine = "engine"      # the Pantheon forecasting engine: posts forecasts, nothing else
+    partner = "partner"    # QEnergy (José Antonio): offer files and settlements only
 
 
 class Strategy(str, Enum):

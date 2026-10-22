@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Pantheon API",
-    "description": "\nClient API for Pantheon, Genau AI's forecasting and dispatch platform for solar + battery plants and battery fleets in Mexico.\nIt serves everything the Pantheon screens show, so a client's own systems, a lender's advisor or a white-label partner\ncan use the same data.\n\n**Authentication.** Send your key in `X-API-Key`. Each key belongs to a person with a role:\n\n| Role | Can |\n|---|---|\n| viewer | Read plans, settlement, reports, alerts |\n| auditor | Viewer + audit log + raw forecast CSV (for a lender's technical advisor) |\n| operator | Viewer + overrides, approvals, offer export, alert decisions |\n| asset_manager | Operator + sign off soft limit breaches, maintenance, disputes, audit log |\n| admin | Everything, including operating limits, roles and webhooks |\n\n**Guardrails.** Every plan is checked against the site's limits, outside the forecasting engine. *Hard* breaches (power,\nbattery charge) can never be approved. *Soft* breaches (daily cycle limit, an uncovered likely critical hour) need an asset\nmanager's sign-off.\n\n**Capacity value.** Likely critical hours come with a likelihood. Capacity value is always `status: \"projection\"` with a null\namount until it is verified against CENACE settlement data for the node.\n\n**Daily replay.** `GET /v1/sites/{id}/replay/{date}` answers \"did it earn its fee yesterday?\": planned against actual, hour by hour,\nagainst the battery sitting idle, with what drove the difference.\n\n**CENACE.** Pantheon never submits to CENACE or controls the battery. An approved plan is an *offer*:\n`GET /v1/sites/{id}/offer/{date}` and its `/export` give [TRADER] (the client's Market Participant) the self-schedule to\nsubmit to the day-ahead market by 10:00 on D-1; `/offer/{date}/submitted` records the confirmation; `/cleared/{date}` stores\nCENACE's result and the deviations; `/imports/meter` and `/imports/statement` take the meter intervals and the settlement\nstatements; `/data-sources` says where every number comes from. Lifecycle: offered → cleared → dispatched → measured → settled.\n\n**WhatsApp.** The morning plan and incidents go out as WhatsApp messages with buttons. A tap arrives at\n`POST /v1/channels/whatsapp/inbound` from a verified number, runs with that person's role and is written to the audit log with the\nchannel. Plans that need a sign-off can only be approved in the app.\n\n**Language.** Send `Accept-Language: es-MX` for Spanish messages, explanations and alerts. Field names and codes stay in English.\n\n**Errors.** Always `{\"error\": {\"code\", \"message\", \"details\"}}`.\n\n**Units.** MXN, MXN/MWh, MW (positive = discharge, negative = charge), MWh, plant local time (America/Mexico_City).\n\n**Product lines.** `GET /v1/products` lists the nine lines Genau offers in Mexico (battery optimization, plant\nforecasting, critical-hour service, supplier and trader forecasts, white-label, bankability, revenue floors, grid forecasting,\nGenau Mexico with QEnergy); `GET /v1/products/{id}` adds sample figures for its screen. `GET /v1/business/plan` is the\ninternal 2030 revenue build, admin only.\n\n**Sample data.** This build runs on a sample engine and a demo clock (08:15, Saturday 17 October 2026). Responses carry\n`sample_data: true` until the live engine is connected.\n",
+    "description": "\nClient API for Pantheon, Genau AI's forecasting and dispatch platform for solar + battery plants and battery fleets in Mexico.\nIt serves everything the Pantheon screens show, so a client's own systems, a lender's advisor or a white-label partner\ncan use the same data.\n\n**Authentication.** Send your key in `X-API-Key`. Each key belongs to a person with a role:\n\n| Role | Can |\n|---|---|\n| viewer | Read plans, settlement, reports, alerts |\n| auditor | Viewer + audit log + raw forecast CSV (for a lender's technical advisor) |\n| operator | Viewer + overrides, approvals, offer export, alert decisions |\n| asset_manager | Operator + sign off soft limit breaches, maintenance, disputes, audit log |\n| admin | Everything, including operating limits, roles and webhooks |\n\n**Guardrails.** Every plan is checked against the site's limits, outside the forecasting engine. *Hard* breaches (power,\nbattery charge) can never be approved. *Soft* breaches (daily cycle limit, an uncovered likely critical hour) need an asset\nmanager's sign-off.\n\n**Capacity value.** Likely critical hours come with a likelihood. Capacity value is always `status: \"projection\"` with a null\namount until it is verified against CENACE settlement data for the node.\n\n**Daily replay.** `GET /v1/sites/{id}/replay/{date}` answers \"did it earn its fee yesterday?\": planned against actual, hour by hour,\nagainst the battery sitting idle, with what drove the difference.\n\n**CENACE.** Pantheon never submits to CENACE or controls the battery. An approved plan is an *offer*:\n`GET /v1/sites/{id}/offer/{date}` and its `/export` give [TRADER] (the client's Market Participant) the self-schedule to\nsubmit to the day-ahead market by 10:00 on D-1; `/offer/{date}/submitted` records the confirmation; `/cleared/{date}` stores\nCENACE's result and the deviations; `/imports/meter` and `/imports/statement` take the meter intervals and the settlement\nstatements; `/data-sources` says where every number comes from. Lifecycle: offered → cleared → dispatched → measured → settled.\n\n**WhatsApp.** The morning plan and incidents go out as WhatsApp messages with buttons. A tap arrives at\n`POST /v1/channels/whatsapp/inbound` from a verified number, runs with that person's role and is written to the audit log with the\nchannel. Plans that need a sign-off can only be approved in the app.\n\n**Language.** Send `Accept-Language: es-MX` for Spanish messages, explanations and alerts. Field names and codes stay in English.\n\n**Errors.** Always `{\"error\": {\"code\", \"message\", \"details\"}}`.\n\n**Units.** MXN, MXN/MWh, MW (positive = discharge, negative = charge), MWh, plant local time (America/Mexico_City).\n\n**QEnergy.** The Pantheon engine posts each day's hourly forecast to `POST /v1/qenergy/sites/{site}/forecasts/{day}` (role\n`engine`). QEnergy downloads the sales offer (`…/offers/{day}/venta.xlsx`) and the purchase offer (`…/offers/{day}/compra.xlsx`)\nin its own templates, and the monthly settlement (`…/settlements?month=`). Every forecast version is kept with its SHA-256.\n\n**Product lines.** `GET /v1/products` lists the nine lines Genau offers in Mexico (battery optimization, plant\nforecasting, critical-hour service, supplier and trader forecasts, white-label, bankability, revenue floors, grid forecasting,\nGenau Mexico with QEnergy); `GET /v1/products/{id}` adds sample figures for its screen. `GET /v1/business/plan` is the\ninternal 2030 revenue build, admin only.\n\n**Sample data.** This build runs on a sample engine and a demo clock (08:15, Saturday 17 October 2026). Responses carry\n`sample_data: true` until the live engine is connected.\n",
     "version": "0.2.0"
   },
   "paths": {
@@ -257,7 +257,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/Site"
+                    "$ref": "#/components/schemas/app__models__Site"
                   },
                   "type": "array",
                   "title": "Response List Sites V1 Sites Get"
@@ -302,7 +302,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Site"
+                  "$ref": "#/components/schemas/app__models__Site"
                 }
               }
             }
@@ -3293,6 +3293,532 @@
         }
       }
     },
+    "/v1/qenergy/sites": {
+      "get": {
+        "tags": [
+          "QEnergy offers and settlements"
+        ],
+        "summary": "Plants QEnergy represents",
+        "operationId": "sites_v1_qenergy_sites_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/app__routers__qenergy__Site"
+                  },
+                  "type": "array",
+                  "title": "Response Sites V1 Qenergy Sites Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/qenergy/sites/{site_id}/forecasts/{day}": {
+      "post": {
+        "tags": [
+          "QEnergy offers and settlements"
+        ],
+        "summary": "Pantheon engine posts a day's hourly forecast (new version each time)",
+        "operationId": "post_forecast_v1_qenergy_sites__site_id__forecasts__day__post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          },
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForecastIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastReceipt"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "QEnergy offers and settlements"
+        ],
+        "summary": "Latest forecast for a day, with its fingerprint",
+        "operationId": "get_forecast_v1_qenergy_sites__site_id__forecasts__day__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          },
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/qenergy/sites/{site_id}/forecasts": {
+      "get": {
+        "tags": [
+          "QEnergy offers and settlements"
+        ],
+        "summary": "Days with a forecast, newest first",
+        "operationId": "list_forecasts_v1_qenergy_sites__site_id__forecasts_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DayListing"
+                  },
+                  "title": "Response List Forecasts V1 Qenergy Sites  Site Id  Forecasts Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/qenergy/sites/{site_id}/forecasts/{day}/history": {
+      "get": {
+        "tags": [
+          "QEnergy offers and settlements"
+        ],
+        "summary": "Every version posted for a day (time and SHA-256)",
+        "operationId": "forecast_history_v1_qenergy_sites__site_id__forecasts__day__history_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          },
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "title": "Response Forecast History V1 Qenergy Sites  Site Id  Forecasts  Day  History Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/qenergy/sites/{site_id}/offers/{day}/venta.xlsx": {
+      "get": {
+        "tags": [
+          "QEnergy offers and settlements"
+        ],
+        "summary": "Sales offer (Oferta No Despachable) for one day, in QEnergy's template",
+        "operationId": "offer_venta_v1_qenergy_sites__site_id__offers__day__venta_xlsx_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          },
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/qenergy/sites/{site_id}/offers/{day}/compra.xlsx": {
+      "get": {
+        "tags": [
+          "QEnergy offers and settlements"
+        ],
+        "summary": "Purchase offer (Oferta de Compra) from a day, same hourly profile for 1–7 days",
+        "operationId": "offer_compra_v1_qenergy_sites__site_id__offers__day__compra_xlsx_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          },
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 7,
+              "minimum": 1,
+              "default": 7,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/qenergy/sites/{site_id}/results/{day}": {
+      "post": {
+        "tags": [
+          "QEnergy offers and settlements"
+        ],
+        "summary": "Post a day's cleared MW, metered MWh and nodal prices",
+        "operationId": "post_results_v1_qenergy_sites__site_id__results__day__post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          },
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResultsIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Results V1 Qenergy Sites  Site Id  Results  Day  Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/qenergy/sites/{site_id}/settlements": {
+      "get": {
+        "tags": [
+          "QEnergy offers and settlements"
+        ],
+        "summary": "Settlement for a month: day-ahead revenue + real-time deviations, by day and hour",
+        "operationId": "settlements_v1_qenergy_sites__site_id__settlements_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}$",
+              "title": "Month"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "json",
+                "csv",
+                "xlsx"
+              ],
+              "type": "string",
+              "default": "json",
+              "title": "Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -4158,6 +4684,35 @@
         ],
         "title": "DataSources"
       },
+      "DayListing": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "versions": {
+            "type": "integer",
+            "title": "Versions"
+          },
+          "last_received_at": {
+            "type": "string",
+            "title": "Last Received At"
+          },
+          "sample": {
+            "type": "boolean",
+            "title": "Sample"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "versions",
+          "last_received_at",
+          "sample"
+        ],
+        "title": "DayListing"
+      },
       "Deviation": {
         "properties": {
           "hour": {
@@ -4349,6 +4904,176 @@
           "to_user_id"
         ],
         "title": "Escalation"
+      },
+      "ForecastHour": {
+        "properties": {
+          "hour": {
+            "type": "integer",
+            "maximum": 25.0,
+            "minimum": 1.0,
+            "title": "Hour",
+            "description": "CENACE hour 1–24 (25 only on the day clocks go back)"
+          },
+          "sell_mw": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Sell Mw",
+            "description": "Energy offered for sale, MW (non-dispatchable offer)"
+          },
+          "sell_price": {
+            "type": "number",
+            "title": "Sell Price",
+            "description": "MXN/MWh. 0 = price-taker, as in QEnergy's samples",
+            "default": 0
+          },
+          "buy_fixed_mw": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Buy Fixed Mw",
+            "description": "Fixed purchase demand at the load centre, MW",
+            "default": 0
+          },
+          "buy_segments": {
+            "items": {
+              "$ref": "#/components/schemas/Segment"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Buy Segments",
+            "description": "Up to 3 price-sensitive purchase blocks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hour",
+          "sell_mw"
+        ],
+        "title": "ForecastHour"
+      },
+      "ForecastIn": {
+        "properties": {
+          "hours": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastHour"
+            },
+            "type": "array",
+            "maxItems": 25,
+            "minItems": 24,
+            "title": "Hours"
+          },
+          "model_version": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Model Version",
+            "default": "unknown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hours"
+        ],
+        "title": "ForecastIn"
+      },
+      "ForecastOut": {
+        "properties": {
+          "site": {
+            "type": "string",
+            "title": "Site"
+          },
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "received_at": {
+            "type": "string",
+            "title": "Received At"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "sample": {
+            "type": "boolean",
+            "title": "Sample",
+            "default": false
+          },
+          "posted_by": {
+            "type": "string",
+            "title": "Posted By"
+          },
+          "hours": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastHour"
+            },
+            "type": "array",
+            "title": "Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "site",
+          "day",
+          "version",
+          "sha256",
+          "received_at",
+          "model_version",
+          "posted_by",
+          "hours"
+        ],
+        "title": "ForecastOut"
+      },
+      "ForecastReceipt": {
+        "properties": {
+          "site": {
+            "type": "string",
+            "title": "Site"
+          },
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "received_at": {
+            "type": "string",
+            "title": "Received At"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "sample": {
+            "type": "boolean",
+            "title": "Sample",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "site",
+          "day",
+          "version",
+          "sha256",
+          "received_at",
+          "model_version"
+        ],
+        "title": "ForecastReceipt"
       },
       "HTTPValidationError": {
         "properties": {
@@ -5933,6 +6658,63 @@
         ],
         "title": "ReplaySummary"
       },
+      "ResultHour": {
+        "properties": {
+          "hour": {
+            "type": "integer",
+            "maximum": 25.0,
+            "minimum": 1.0,
+            "title": "Hour"
+          },
+          "cleared_mw": {
+            "type": "number",
+            "title": "Cleared Mw",
+            "description": "Assigned by CENACE in the day-ahead market"
+          },
+          "measured_mwh": {
+            "type": "number",
+            "title": "Measured Mwh",
+            "description": "From the certified meter"
+          },
+          "pml_mda": {
+            "type": "number",
+            "title": "Pml Mda",
+            "description": "Day-ahead nodal price, MXN/MWh"
+          },
+          "pml_mtr": {
+            "type": "number",
+            "title": "Pml Mtr",
+            "description": "Real-time nodal price, MXN/MWh"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hour",
+          "cleared_mw",
+          "measured_mwh",
+          "pml_mda",
+          "pml_mtr"
+        ],
+        "title": "ResultHour"
+      },
+      "ResultsIn": {
+        "properties": {
+          "hours": {
+            "items": {
+              "$ref": "#/components/schemas/ResultHour"
+            },
+            "type": "array",
+            "maxItems": 25,
+            "minItems": 24,
+            "title": "Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hours"
+        ],
+        "title": "ResultsIn"
+      },
       "Role": {
         "type": "string",
         "enum": [
@@ -5940,7 +6722,9 @@
           "auditor",
           "operator",
           "asset_manager",
-          "admin"
+          "admin",
+          "engine",
+          "partner"
         ],
         "title": "Role"
       },
@@ -5992,6 +6776,26 @@
           "source"
         ],
         "title": "ScheduleBlock"
+      },
+      "Segment": {
+        "properties": {
+          "mw": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Mw"
+          },
+          "price": {
+            "type": "number",
+            "title": "Price",
+            "description": "MXN/MWh"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mw",
+          "price"
+        ],
+        "title": "Segment"
       },
       "SettlementDay": {
         "properties": {
@@ -6278,74 +7082,6 @@
           "disclaimer"
         ],
         "title": "SimulationResult"
-      },
-      "Site": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "region": {
-            "type": "string",
-            "title": "Region"
-          },
-          "node_id": {
-            "type": "string",
-            "title": "Node Id",
-            "description": "CENACE pricing node. Placeholder in sample data."
-          },
-          "power_mw": {
-            "type": "number",
-            "title": "Power Mw"
-          },
-          "energy_mwh": {
-            "type": "number",
-            "title": "Energy Mwh"
-          },
-          "solar_mw": {
-            "type": "number",
-            "title": "Solar Mw",
-            "description": "Co-located solar capacity; 0 for standalone batteries.",
-            "default": 0
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "discharging",
-              "charging",
-              "holding",
-              "maintenance",
-              "onboarding"
-            ],
-            "title": "Status"
-          },
-          "soc_pct": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Soc Pct"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "region",
-          "node_id",
-          "power_mw",
-          "energy_mwh",
-          "status"
-        ],
-        "title": "Site"
       },
       "SourceStatus": {
         "properties": {
@@ -6991,6 +7727,112 @@
           "reply_text"
         ],
         "title": "WhatsAppReply"
+      },
+      "app__models__Site": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "node_id": {
+            "type": "string",
+            "title": "Node Id",
+            "description": "CENACE pricing node. Placeholder in sample data."
+          },
+          "power_mw": {
+            "type": "number",
+            "title": "Power Mw"
+          },
+          "energy_mwh": {
+            "type": "number",
+            "title": "Energy Mwh"
+          },
+          "solar_mw": {
+            "type": "number",
+            "title": "Solar Mw",
+            "description": "Co-located solar capacity; 0 for standalone batteries.",
+            "default": 0
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "discharging",
+              "charging",
+              "holding",
+              "maintenance",
+              "onboarding"
+            ],
+            "title": "Status"
+          },
+          "soc_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Soc Pct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "region",
+          "node_id",
+          "power_mw",
+          "energy_mwh",
+          "status"
+        ],
+        "title": "Site"
+      },
+      "app__routers__qenergy__Site": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "central": {
+            "type": "string",
+            "title": "Central"
+          },
+          "unidad": {
+            "type": "string",
+            "title": "Unidad"
+          },
+          "centro_carga": {
+            "type": "string",
+            "title": "Centro Carga"
+          },
+          "market_participant": {
+            "type": "string",
+            "title": "Market Participant"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "central",
+          "unidad",
+          "centro_carga",
+          "market_participant"
+        ],
+        "title": "Site"
       }
     },
     "securitySchemes": {

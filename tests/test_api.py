@@ -484,3 +484,75 @@ def test_prospects_only_for_genau(client):
     assert client.get("/v1/products/white-label", headers=MANAGER).json()["prospects"] == []
     ps = client.get("/v1/products/white-label", headers=ADMIN).json()["prospects"]
     assert any(p["name"] == "SkySense" for p in ps) and all((p["url"] or "").startswith("https://") or p["source"] for p in ps)
+
+
+# ---------- QEnergy offers and settlements ----------
+
+import io as _io
+import openpyxl as _openpyxl
+from app.qenergy_store import QStore
+from app.routers.qenergy import get_qstore
+
+ENGINE, QENERGY = {"X-API-Key": "demo-engine"}, {"X-API-Key": "demo-qenergy"}
+
+
+@pytest.fixture
+def qclient(client, tmp_path):
+    qs = QStore(path=str(tmp_path / "q.db"), sample=True)
+    app.dependency_overrides[get_qstore] = lambda: qs
+    yield client
+
+
+def _fc(day_mw=0.5):
+    return {"model_version": "test-1", "hours": [
+        {"hour": h, "sell_mw": day_mw if 10 <= h <= 16 else 0, "sell_price": 0, "buy_fixed_mw": 0.02,
+         "buy_segments": [{"mw": 0.05, "price": 900}] if h in (3, 4) else []} for h in range(1, 25)]}
+
+
+def test_engine_posts_and_partner_downloads_offers(qclient):
+    c = qclient
+    r = c.post("/v1/qenergy/sites/atotonilco/forecasts/2026-10-20", json=_fc(), headers=ENGINE)
+    assert r.status_code == 201, r.text
+    rec = r.json()
+    assert rec["version"] == 1 and len(rec["sha256"]) == 64
+    assert c.post("/v1/qenergy/sites/atotonilco/forecasts/2026-10-20", json=_fc(0.6), headers=ENGINE).json()["version"] == 2
+    # partner cannot post forecasts; engine cannot read offers
+    assert c.post("/v1/qenergy/sites/atotonilco/forecasts/2026-10-20", json=_fc(), headers=QENERGY).status_code == 403
+    assert c.get("/v1/qenergy/sites/atotonilco/offers/2026-10-20/venta.xlsx", headers=ENGINE).status_code == 403
+    # sales offer in QEnergy's template, latest version
+    r = c.get("/v1/qenergy/sites/atotonilco/offers/2026-10-20/venta.xlsx", headers=QENERGY)
+    assert r.status_code == 200 and r.headers["x-forecast-sha256"] != rec["sha256"]
+    ws = _openpyxl.load_workbook(_io.BytesIO(r.content)).active
+    assert ws["A2"].value == "ONDvr1" and ws["L4"].value == "01GTT" and ws["P4"].value == "01GTT-EX1"
+    assert ws["D4"].value.date().isoformat() == "2026-10-20" and ws["D25"].value == 0.6 and ws["D14"].value == 0 and ws["D38"].value is None
+    # purchase offer, 7 days from the date
+    r = c.get("/v1/qenergy/sites/atotonilco/offers/2026-10-20/compra.xlsx", headers=QENERGY)
+    ws = _openpyxl.load_workbook(_io.BytesIO(r.content)).active
+    assert ws["A2"].value == "OCEvr1" and ws["M3"].value == "AXC0611GTT79" and ws["H3"].value == "=D3+6"
+    assert ws["D16"].value == 0.02 and ws["F16"].value == 0.05 and ws["H16"].value == 900 and ws["J16"].value == 0
+    r = c.get("/v1/qenergy/sites/atotonilco/offers/2026-10-20/compra.xlsx?days=1", headers=QENERGY)
+    ws = _openpyxl.load_workbook(_io.BytesIO(r.content)).active
+    assert ws["H3"].value.date().isoformat() == "2026-10-20"
+    # history keeps both versions
+    assert len(c.get("/v1/qenergy/sites/atotonilco/forecasts/2026-10-20/history", headers=QENERGY).json()) == 2
+
+
+def test_forecast_validation_and_missing(qclient):
+    bad = _fc(); bad["hours"] = bad["hours"][:23]
+    assert qclient.post("/v1/qenergy/sites/atotonilco/forecasts/2026-10-21", json=bad, headers=ENGINE).status_code == 422
+    assert qclient.get("/v1/qenergy/sites/atotonilco/offers/2030-01-01/venta.xlsx", headers=QENERGY).status_code == 404
+    assert qclient.get("/v1/qenergy/sites/nowhere/forecasts", headers=QENERGY).status_code == 404
+
+
+def test_settlement_math(qclient):
+    c = qclient
+    c.post("/v1/qenergy/sites/atotonilco/forecasts/2026-11-02", json=_fc(), headers=ENGINE)
+    hours = [{"hour": h, "cleared_mw": 1.0 if h == 12 else 0, "measured_mwh": 0.8 if h == 12 else 0, "pml_mda": 2000, "pml_mtr": 2500} for h in range(1, 25)]
+    assert c.post("/v1/qenergy/sites/atotonilco/results/2026-11-02", json={"hours": hours}, headers=QENERGY).status_code == 201
+    s = c.get("/v1/qenergy/sites/atotonilco/settlements?month=2026-11", headers=QENERGY).json()
+    d = s["days"][0]
+    assert d["mda_mxn"] == 2000 and d["mtr_mxn"] == -500 and d["total_mxn"] == 1500 and not s["sample_data"]
+    assert c.get("/v1/qenergy/sites/atotonilco/settlements?month=2026-11&format=xlsx", headers=QENERGY).status_code == 200
+    assert "mda_mxn" in c.get("/v1/qenergy/sites/atotonilco/settlements?month=2026-11&format=csv", headers=QENERGY).text
+    # sample month exists for the page demo
+    assert len(c.get("/v1/qenergy/sites/atotonilco/settlements?month=2026-10", headers=QENERGY).json()["days"]) >= 1
