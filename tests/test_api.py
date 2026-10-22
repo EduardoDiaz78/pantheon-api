@@ -535,6 +535,11 @@ def test_engine_posts_and_partner_downloads_offers(qclient):
     assert ws["H3"].value.date().isoformat() == "2026-10-20"
     # history keeps both versions
     assert len(c.get("/v1/qenergy/sites/atotonilco/forecasts/2026-10-20/history", headers=QENERGY).json()) == 2
+    # anyone can re-check the fingerprint from the canonical bytes
+    import hashlib
+    r = c.get("/v1/qenergy/sites/atotonilco/forecasts/2026-10-20/canonical", headers=QENERGY)
+    assert hashlib.sha256(r.content).hexdigest() == r.headers["x-forecast-sha256"]
+    assert b'"model_version":"test-1"' in r.content and b'"day":"2026-10-20"' in r.content
 
 
 def test_forecast_validation_and_missing(qclient):

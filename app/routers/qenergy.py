@@ -145,6 +145,13 @@ def get_forecast(site_id: str, day: date, _: Caller = Depends(need("qenergy.read
                        model_version=f["model_version"], sample=f["sample"], posted_by=f["posted_by"], hours=f["payload"]["hours"])
 
 
+@router.get("/sites/{site_id}/forecasts/{day}/canonical", summary="The exact bytes that were fingerprinted, to re-check the SHA-256 independently")
+def forecast_canonical(site_id: str, day: date, _: Caller = Depends(need("qenergy.read")), store: QStore = Depends(get_qstore)) -> Response:
+    site_or_404(site_id)
+    f = forecast_or_404(store, site_id, day)
+    return Response(f["canonical"], media_type="application/json", headers={"X-Forecast-SHA256": f["sha256"]})
+
+
 @router.get("/sites/{site_id}/forecasts/{day}/history", summary="Every version posted for a day (time and SHA-256)")
 def forecast_history(site_id: str, day: date, _: Caller = Depends(need("qenergy.read")), store: QStore = Depends(get_qstore)) -> list[dict]:
     site_or_404(site_id)

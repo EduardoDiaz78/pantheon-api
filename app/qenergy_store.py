@@ -50,7 +50,8 @@ class QStore:
 
     # ---------- forecasts ----------
     def put_forecast(self, site: str, day: date, payload: dict, posted_by: str, model_version: str, sample: bool = False) -> dict:
-        body = canonical(payload)
+        # The fingerprint covers what was forecast AND for which plant, day and model, so none can be swapped later.
+        body = canonical({"site": site, "day": day.isoformat(), "model_version": model_version, "hours": payload["hours"]})
         sha = hashlib.sha256(body.encode()).hexdigest()
         now = datetime.now(timezone.utc).isoformat(timespec="seconds")
         with self.lock:
@@ -66,7 +67,8 @@ class QStore:
             return None
         version = self.db.execute("SELECT COUNT(*) FROM forecasts WHERE site=? AND day=?", (site, day.isoformat())).fetchone()[0]
         return {"site": site, "day": r["day"], "version": version, "sha256": r["sha256"], "received_at": r["received_at"],
-                "posted_by": r["posted_by"], "model_version": r["model_version"], "sample": bool(r["sample"]), "payload": json.loads(r["payload"])}
+                "posted_by": r["posted_by"], "model_version": r["model_version"], "sample": bool(r["sample"]),
+                "payload": {"hours": json.loads(r["payload"])["hours"]}, "canonical": r["payload"]}
 
     def forecast_days(self, site: str) -> list[dict]:
         rows = self.db.execute("""SELECT day, COUNT(*) n, MAX(received_at) last, MAX(sample) sample FROM forecasts WHERE site=?
