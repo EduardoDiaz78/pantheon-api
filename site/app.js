@@ -640,7 +640,9 @@
     ch_title: "Tomorrow’s likely critical hours", ch_hour: "Hour",
     plan_title: "The path to {total} a year in Mexico", plan_lede: "2030 annual recurring revenue by product line. Planning estimates, not contracted revenue.",
     plan_total: "Target 2030", plan_lines: "Revenue by line, 2030", plan_ramp: "How it ramps", plan_gate: "The gate", plan_cond: "What must be true",
-    usd_m: "USD M"
+    usd_m: "USD M",
+    l_prospects: "Prospects", l_prospects_note: "Genau internal. Real companies from public sources; none is a client yet.",
+    k_customer: "Customer", k_partner: "Partner", k_channel: "Channel", k_competitor: "Competitor", l_company: "Company", l_what: "What they do", l_evidence: "Evidence", l_source: "Source"
   });
   Object.assign(T.es, {
     nav_lines: "Líneas de producto", nav_plan: "Plan de negocio",
@@ -654,7 +656,9 @@
     ch_title: "Horas críticas probables de mañana", ch_hour: "Hora",
     plan_title: "El camino a {total} al año en México", plan_lede: "Ingreso recurrente anual 2030 por línea de producto. Estimaciones de planeación, no ingresos contratados.",
     plan_total: "Meta 2030", plan_lines: "Ingreso por línea, 2030", plan_ramp: "Cómo crece", plan_gate: "La compuerta", plan_cond: "Lo que debe cumplirse",
-    usd_m: "M USD"
+    usd_m: "M USD",
+    l_prospects: "Prospectos", l_prospects_note: "Interno de Genau. Empresas reales de fuentes públicas; ninguna es cliente todavía.",
+    k_customer: "Cliente", k_partner: "Socio", k_channel: "Canal", k_competitor: "Competidor", l_company: "Empresa", l_what: "Qué hacen", l_evidence: "Evidencia", l_source: "Fuente"
   });
   var SAMPLE_LBL = {
     site: ["Site", "Sitio"], power_mw: ["Power, MW", "Potencia, MW"], energy_mwh: ["Energy, MWh", "Energía, MWh"], status: ["Status", "Estado"],
@@ -720,8 +724,20 @@
         '<div class="row" style="align-items:stretch">' +
         '<section class="card"><h2>' + esc(t("l_buyer")) + '</h2><p style="margin:0">' + esc(p.buyer) + "</p><h2>" + esc(t("l_offer")) + '</h2><p style="margin:0">' + esc(p.offer) + "</p><h2>" + esc(t("l_price")) + '</h2><p class="peak" style="margin:0">' + esc(p.price) + "</p></section>" +
         '<section class="card"><h2>' + esc(t("l_first")) + "</h2>" + list(p.first_customers) + "<h2>" + esc(t("l_needs")) + "</h2>" + list(p.needs) + "</section>" +
-        (rows ? '<section class="card"><h2>' + esc(t("l_sample")) + '</h2><div class="lines">' + rows + "</div></section>" : "") + "</div>", r[1].length);
+        (rows ? '<section class="card"><h2>' + esc(t("l_sample")) + '</h2><div class="lines">' + rows + "</div></section>" : "") + "</div>" + prospectsCard(p.prospects), r[1].length);
     });
+  }
+
+  function prospectsCard(ps) {
+    if (!ps || !ps.length) return "";
+    var col = { customer: "var(--good)", partner: "var(--charge-text)", channel: "var(--peak)", competitor: "var(--critical)" };
+    var rows = ps.map(function (x) {
+      var host = ""; try { host = new URL(x.url).hostname.replace(/^www\./, ""); } catch (e) { host = x.url; }
+      return "<tr><td><strong>" + esc(x.name) + '</strong><div class="small" style="color:' + col[x.kind] + '">' + esc(t("k_" + x.kind)) + "</div></td>" +
+        '<td class="small">' + esc(x.what) + '</td><td class="small">' + esc(x.evidence) + '</td><td class="small"><a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(host) + "</a></td></tr>";
+    }).join("");
+    return '<section class="card"><h2>' + esc(t("l_prospects")) + ' <span class="muted small mono">' + ps.length + '</span></h2><p class="small muted" style="margin:0">' + esc(t("l_prospects_note")) + "</p>" +
+      '<div class="tablewrap"><table><thead><tr><th>' + esc(t("l_company")) + "</th><th>" + esc(t("l_what")) + "</th><th>" + esc(t("l_evidence")) + "</th><th>" + esc(t("l_source")) + "</th></tr></thead><tbody>" + rows + "</tbody></table></div></section>";
   }
 
   function planPage() {

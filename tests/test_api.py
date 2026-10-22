@@ -478,3 +478,9 @@ def test_business_plan_admin_only_and_adds_up(client):
     p = client.get("/v1/business/plan", headers=ADMIN).json()
     assert round(sum(l["arr_2030_usd"] for l in p["lines"])) == p["target_arr_usd"] == 33_800_000
     assert p["ramp"][-1]["arr_usd"] == 33_800_000 and p["lines"][0]["id"] == "battery-optimization"
+
+
+def test_prospects_only_for_genau(client):
+    assert client.get("/v1/products/white-label", headers=MANAGER).json()["prospects"] == []
+    ps = client.get("/v1/products/white-label", headers=ADMIN).json()["prospects"]
+    assert any(p["name"] == "SkySense" for p in ps) and all(p["url"].startswith("https://") for p in ps)

@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from ..auth import Caller, current, need
+from ..prospects import PROSPECTS
 from ..errors import ApiError
 from ..i18n import get_lang
 
@@ -32,11 +33,20 @@ class ProductLine(BaseModel):
     sample_data: bool = True
 
 
+class Prospect(BaseModel):
+    name: str
+    kind: Literal["customer", "partner", "channel", "competitor"]
+    what: str
+    evidence: str
+    url: str
+
+
 class ProductDetail(ProductLine):
     first_customers: list[str]
     needs: list[str]
     metrics: list[dict]
     sample: dict
+    prospects: list[Prospect] = []
 
 
 class PlanLine(BaseModel):
@@ -288,14 +298,17 @@ def list_products(_: Caller = Depends(current), lang: str = Depends(get_lang)) -
 
 
 @router.get("/v1/products/{product_id}", response_model=ProductDetail, summary="One product line, with sample figures for its screen")
-def one_product(product_id: str, _: Caller = Depends(current), lang: str = Depends(get_lang)) -> ProductDetail:
+def one_product(product_id: str, c: Caller = Depends(current), lang: str = Depends(get_lang)) -> ProductDetail:
     d = _BY_ID.get(product_id)
     if not d:
         raise ApiError(404, "not_found", what=product_id)
     base = _line(d, lang).model_dump()
     return ProductDetail(**base, first_customers=_tl(d["first_customers"], lang), needs=_tl(d["needs"], lang),
                          metrics=[{"key": k, "value": v, "label": _t(lbl, lang)} for k, v, lbl in d["metrics"]],
-                         sample=_sample(d["sample"], lang))
+                         sample=_sample(d["sample"], lang),
+                         # Named prospects are Genau-internal: only roles with business.read see them.
+                         prospects=[Prospect(**{k: _t(v, lang) for k, v in x.items()}) for x in PROSPECTS.get(product_id, [])]
+                         if c.can("business.read") else [])
 
 
 @router.get("/v1/business/plan", response_model=BusinessPlan, summary="Genau's 2030 revenue build (internal; admin only)")

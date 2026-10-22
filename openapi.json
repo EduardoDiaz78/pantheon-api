@@ -5555,6 +5555,14 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Sample"
+          },
+          "prospects": {
+            "items": {
+              "$ref": "#/components/schemas/Prospect"
+            },
+            "type": "array",
+            "title": "Prospects",
+            "default": []
           }
         },
         "type": "object",
@@ -5631,6 +5639,45 @@
           "headline"
         ],
         "title": "ProductLine"
+      },
+      "Prospect": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "customer",
+              "partner",
+              "channel",
+              "competitor"
+            ],
+            "title": "Kind"
+          },
+          "what": {
+            "type": "string",
+            "title": "What"
+          },
+          "evidence": {
+            "type": "string",
+            "title": "Evidence"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "kind",
+          "what",
+          "evidence",
+          "url"
+        ],
+        "title": "Prospect"
       },
       "Replay": {
         "properties": {
