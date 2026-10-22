@@ -31,12 +31,46 @@ def canonical(payload: dict) -> str:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
+class _Rows:
+    """Result of a query, fully read while the lock was held."""
+    def __init__(self, rows: list, lastrowid: int | None) -> None:
+        self._rows, self.lastrowid = rows, lastrowid
+
+    def fetchone(self):
+        return self._rows[0] if self._rows else None
+
+    def fetchall(self) -> list:
+        return self._rows
+
+
+class _SerialConnection:
+    """One SQLite connection shared by FastAPI's worker threads. SQLite raises "bad parameter or other API misuse"
+    when two threads use one connection at once (e.g. the QEnergy page loads the forecast and the settlement together),
+    so every call goes through one re-entrant lock and results are read before it is released."""
+    def __init__(self, conn: sqlite3.Connection, lock: threading.RLock) -> None:
+        self._c, self._lock = conn, lock
+
+    def execute(self, sql: str, params=()) -> _Rows:
+        with self._lock:
+            cur = self._c.execute(sql, params)
+            return _Rows(cur.fetchall(), cur.lastrowid)
+
+    def executescript(self, sql: str) -> None:
+        with self._lock:
+            self._c.executescript(sql)
+
+    def commit(self) -> None:
+        with self._lock:
+            self._c.commit()
+
+
 class QStore(ChainStore):
     def __init__(self, path: str | None = None, sample: bool | None = None) -> None:
         self.path = path or os.getenv("PANTHEON_DB", os.path.join(os.path.dirname(__file__), "..", "pantheon.db"))
-        self.lock = threading.Lock()
-        self.db = sqlite3.connect(self.path, check_same_thread=False)
-        self.db.row_factory = sqlite3.Row
+        self.lock = threading.RLock()  # also held by multi-step writes (append, put_forecast), so they stay atomic
+        conn = sqlite3.connect(self.path, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        self.db = _SerialConnection(conn, self.lock)
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS forecasts (id INTEGER PRIMARY KEY AUTOINCREMENT, site TEXT, day TEXT, payload TEXT,
               sha256 TEXT, received_at TEXT, posted_by TEXT, model_version TEXT, sample INTEGER DEFAULT 0);
