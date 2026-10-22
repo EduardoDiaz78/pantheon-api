@@ -13,7 +13,8 @@
     { key: "demo-viewer", name: "Lucía", role: "viewer" },
     { key: "demo-auditor", name: "Andrés", role: "auditor" },
     { key: "demo-admin", name: "Genau", role: "admin" },
-    { key: "demo-qenergy", name: "José Antonio", role: "partner" }
+    { key: "demo-qenergy", name: "José Antonio", role: "partner" },
+    { key: "demo-client", name: "Bank analyst", role: "client" }
   ];
 
   // ---------- Interface words (the API translates its own messages) ----------
@@ -193,11 +194,11 @@
   }
 
   function frame(route, body, openAlerts) {
-    var partner = state.me.user.role === "partner";
+    var partner = state.me.user.role === "partner" || state.me.user.role === "client";
     var links = partner ? [] : [["home", t("nav_home")], ["yesterday", t("nav_yesterday")], ["today", t("nav_today")], ["alerts", t("nav_alerts")], ["settlement", t("nav_settlement")], ["fleet", t("nav_fleet")]];
     if (!partner) links.push(["lines", t("nav_lines")]);
     if (can("qenergy.read")) links.push(["qenergy", t("nav_qenergy")]);
-    if (can("qenergy.read")) links.push(["timestamps", t("nav_ts")]);
+    if (can("qenergy.read") || can("vispera.disclose")) links.push(["timestamps", t("nav_ts")]);
     if (can("audit.read")) links.push(["audit", t("nav_audit")]);
     if (can("business.read")) links.push(["plan", t("nav_plan")]);
     if (can("business.read")) links.push(["model", mt("nav_model")]);
@@ -1247,155 +1248,181 @@
   }
 
 
-  // ---------- Bitcoin timestamps (OpenTimestamps) ----------
+  // ---------- Víspera: the public forecast chain ----------
   Object.assign(T.en, {
-    nav_ts: "Timestamps", ts_eyebrow: "Víspera record · {site}", ts_title: "Bitcoin timestamps",
-    ts_lede: "Every forecast's SHA-256 fingerprint is anchored in the Bitcoin blockchain through OpenTimestamps. Once a block confirms it, nobody, Genau included, can change that forecast without it showing.",
-    ts_k_btc: "In a Bitcoin block", ts_k_pend: "Waiting for a block", ts_k_queue: "Being sent", ts_k_fail: "Needs a retry",
-    ts_k_btc_c: "Proven, checkable by anyone", ts_k_pend_c: "Calendars hold it; usually a few hours", ts_k_queue_c: "Sent seconds after arrival", ts_k_fail_c: "Retried every 30 minutes",
-    ts_progress: "Progress", ts_of: "{n} of {t} real forecasts anchored", ts_samples: "{n} sample forecasts are never stamped.",
-    ts_latest: "Latest forecast, step by step", ts_none: "No real forecast yet. The sample week isn't stamped; the first forecast from the engine will appear here within seconds.",
-    ts_s1: "Received", ts_s2: "Fingerprinted", ts_s3: "Sent to calendars", ts_s4: "In a Bitcoin block",
-    ts_s2_d: "SHA-256 of site, day, model and hours", ts_s3_d: "Only the hash leaves Pantheon", ts_s4_wait: "Waiting for Bitcoin to confirm", ts_block: "Block",
-    ts_all: "Every version", ts_c: ["Day", "v", "Received (Mexico City)", "Deadline", "SHA-256", "Status", "Bitcoin", ""],
-    ts_ontime: "on time", ts_late: "late", ts_check: "Check", ts_ok: "matches", ts_bad: "doesn't match", ts_proof: ".ots",
-    st_bitcoin: "In Bitcoin", st_pending: "Pending", st_queued: "Queued", st_failed: "Retry", st_sample: "Sample", st_off: "Off",
-    ts_refresh: "Check Bitcoin now", ts_refreshed: "{a} anchored, {p} still pending, {s} sent, {f} failed",
-    ts_how: "Check it yourself, without trusting Genau",
-    ts_how1: "Press Check on any row: your browser downloads the forecast's exact bytes and recomputes its SHA-256 here, in your browser.",
-    ts_how2: "Download the .ots proof and the forecast (the {c} link), then drop both on opentimestamps.org or run: ots verify -f forecast.json forecast.json.ots",
-    ts_how3: "It names the Bitcoin block and its time. If that time is before the day's market results, the forecast was made before anyone knew the answer.",
-    ts_canon: "forecast", ts_off: "Bitcoin timestamps are switched off on this server (PANTHEON_OTS=false)."
+    nav_ts: "Víspera", role_client: "Client under NDA", role_client_d: "Checks Pantheon's forecast record.",
+    v_eyebrow: "Víspera · public forecast record", v_title: "{name}: forecast chain",
+    v_lede: "Every forecast is sealed with a secret salt and linked to the one before it, then logged in Sigstore Rekor and anchored in Bitcoin, two public clocks Genau doesn't control. Anyone can count the forecasts and check each was logged before its deadline; a client under NDA can open them all and recompute every link.",
+    v_none: "No chain yet.", v_none_d: "A chain starts with entry 0, the terms: what is forecast, the deadline, the start date and how it will be scored. It must be recorded before the start date, and it needs a permanent signing key and storage, so a restart can't orphan it.",
+    v_start: "Start a chain", v_start_btn: "Record entry 0",
+    v_terms: "Entry 0 · the terms", v_terms_d: "Fixed before the first forecast. Nobody can move the deadline, the window or the scoring later.",
+    t_quantity: "What is forecast", t_market: "Market", t_horizon: "Horizon", t_cutoff: "Deadline", t_cutoff_v: "{t} Mexico City, {d} day(s) before",
+    t_start: "First day", t_scoring: "Scoring", t_actuals: "Actuals from", t_recorded: "Entry 0 recorded",
+    v_k_fc: "Forecasts", v_k_fc_c: "for {d} days", v_k_cut: "Logged before deadline", v_k_cut_c: "Rekor time vs. entry 0", v_k_btc: "In a Bitcoin block", v_k_btc_c: "of {n} entries", v_k_len: "Chain length", v_k_len_c: "head {h}…",
+    v_strip: "The chain, newest last", v_sealed: "sealed", v_clear: "clear",
+    k_terms: "Terms", k_forecast: "Forecast", k_actuals: "Actuals",
+    v_entries: "Every entry", v_cols: ["#", "Kind", "Day", "Hash", "Logged in Rekor", "Deadline", "Bitcoin", ""],
+    v_before: "before", v_late: "late", v_wait: "waiting",
+    v_check: "Check it", v_check_pub: "Check the public chain", v_check_pub_d: "Anyone: numbering 0, 1, 2… with no gaps, each entry pointing at the one before, entry 0 holding the terms, and every forecast logged before its deadline. Runs in your browser.",
+    v_check_cli: "Open and verify every forecast", v_check_cli_d: "Client under NDA: downloads the whole chain from entry 0 with every forecast and the chain keys, derives each salt and recomputes every hash in your browser.",
+    v_dl: "Download disclosure (.json)", v_cmd: "Or offline, with only Python's standard library:",
+    r_ok: "Intact", r_bad: "Problems found", r_entries: "{n} entries checked", r_hashes: "{n} hashes recomputed from content and salts",
+    r_cut: "{a} of {b} forecasts logged before their deadline", r_links: "Numbering and links: no gaps, no breaks"
   });
   Object.assign(T.es, {
-    nav_ts: "Sellos de tiempo", ts_eyebrow: "Registro Víspera · {site}", ts_title: "Sellos de tiempo en Bitcoin",
-    ts_lede: "La huella SHA-256 de cada pronóstico se ancla en la cadena de bloques de Bitcoin mediante OpenTimestamps. Una vez confirmada en un bloque, nadie, ni Genau, puede cambiar ese pronóstico sin que se note.",
-    ts_k_btc: "En un bloque de Bitcoin", ts_k_pend: "Esperando bloque", ts_k_queue: "Enviándose", ts_k_fail: "Por reintentar",
-    ts_k_btc_c: "Probado, verificable por cualquiera", ts_k_pend_c: "Los calendarios lo tienen; suele tardar unas horas", ts_k_queue_c: "Se envía segundos después de llegar", ts_k_fail_c: "Se reintenta cada 30 minutos",
-    ts_progress: "Avance", ts_of: "{n} de {t} pronósticos reales anclados", ts_samples: "{n} pronósticos de ejemplo nunca se sellan.",
-    ts_latest: "Último pronóstico, paso a paso", ts_none: "Aún no hay pronósticos reales. La semana de ejemplo no se sella; el primer pronóstico del motor aparecerá aquí en segundos.",
-    ts_s1: "Recibido", ts_s2: "Huella calculada", ts_s3: "Enviado a calendarios", ts_s4: "En un bloque de Bitcoin",
-    ts_s2_d: "SHA-256 de sitio, día, modelo y horas", ts_s3_d: "Solo sale el hash de Pantheon", ts_s4_wait: "Esperando confirmación de Bitcoin", ts_block: "Bloque",
-    ts_all: "Todas las versiones", ts_c: ["Día", "v", "Recibido (CDMX)", "Límite", "SHA-256", "Estado", "Bitcoin", ""],
-    ts_ontime: "a tiempo", ts_late: "tarde", ts_check: "Verificar", ts_ok: "coincide", ts_bad: "no coincide", ts_proof: ".ots",
-    st_bitcoin: "En Bitcoin", st_pending: "Pendiente", st_queued: "En cola", st_failed: "Reintentar", st_sample: "Ejemplo", st_off: "Apagado",
-    ts_refresh: "Consultar Bitcoin ahora", ts_refreshed: "{a} anclados, {p} pendientes, {s} enviados, {f} fallidos",
-    ts_how: "Verifíquelo usted mismo, sin confiar en Genau",
-    ts_how1: "Pulse Verificar en cualquier fila: su navegador descarga los bytes exactos del pronóstico y recalcula su SHA-256 aquí mismo.",
-    ts_how2: "Descargue la prueba .ots y el pronóstico (el enlace {c}), y suelte ambos en opentimestamps.org o ejecute: ots verify -f forecast.json forecast.json.ots",
-    ts_how3: "Indica el bloque de Bitcoin y su hora. Si es anterior a los resultados del mercado de ese día, el pronóstico se hizo antes de que nadie supiera la respuesta.",
-    ts_canon: "pronóstico", ts_off: "Los sellos en Bitcoin están apagados en este servidor (PANTHEON_OTS=false)."
+    nav_ts: "Víspera", role_client: "Cliente con NDA", role_client_d: "Verifica el registro de pronósticos de Pantheon.",
+    v_eyebrow: "Víspera · registro público de pronósticos", v_title: "{name}: cadena de pronósticos",
+    v_lede: "Cada pronóstico se sella con una sal secreta y se enlaza con el anterior; luego se registra en Sigstore Rekor y se ancla en Bitcoin, dos relojes públicos que Genau no controla. Cualquiera puede contar los pronósticos y comprobar que cada uno se registró antes de su límite; un cliente con NDA puede abrirlos todos y recalcular cada enlace.",
+    v_none: "Aún no hay cadena.", v_none_d: "Una cadena empieza con la entrada 0, los términos: qué se pronostica, el límite, la fecha de inicio y cómo se evaluará. Debe registrarse antes de la fecha de inicio y requiere una llave de firma y almacenamiento permanentes.",
+    v_start: "Iniciar una cadena", v_start_btn: "Registrar la entrada 0",
+    v_terms: "Entrada 0 · los términos", v_terms_d: "Fijados antes del primer pronóstico. Nadie puede mover después el límite, la ventana ni la evaluación.",
+    t_quantity: "Qué se pronostica", t_market: "Mercado", t_horizon: "Horizonte", t_cutoff: "Límite", t_cutoff_v: "{t} hora de CDMX, {d} día(s) antes",
+    t_start: "Primer día", t_scoring: "Evaluación", t_actuals: "Datos reales de", t_recorded: "Entrada 0 registrada",
+    v_k_fc: "Pronósticos", v_k_fc_c: "para {d} días", v_k_cut: "Registrados antes del límite", v_k_cut_c: "Hora Rekor vs. entrada 0", v_k_btc: "En un bloque de Bitcoin", v_k_btc_c: "de {n} entradas", v_k_len: "Largo de la cadena", v_k_len_c: "cabeza {h}…",
+    v_strip: "La cadena, la más reciente al final", v_sealed: "sellado", v_clear: "abierto",
+    k_terms: "Términos", k_forecast: "Pronóstico", k_actuals: "Reales",
+    v_entries: "Todas las entradas", v_cols: ["#", "Tipo", "Día", "Hash", "Registro en Rekor", "Límite", "Bitcoin", ""],
+    v_before: "antes", v_late: "tarde", v_wait: "en espera",
+    v_check: "Verifíquelo", v_check_pub: "Verificar la cadena pública", v_check_pub_d: "Cualquiera: numeración 0, 1, 2… sin huecos, cada entrada apunta a la anterior, la entrada 0 contiene los términos y cada pronóstico se registró antes de su límite. Corre en su navegador.",
+    v_check_cli: "Abrir y verificar cada pronóstico", v_check_cli_d: "Cliente con NDA: descarga la cadena completa desde la entrada 0 con cada pronóstico y las llaves de cadena, deriva cada sal y recalcula cada hash en su navegador.",
+    v_dl: "Descargar divulgación (.json)", v_cmd: "O sin conexión, solo con la biblioteca estándar de Python:",
+    r_ok: "Íntegra", r_bad: "Se encontraron problemas", r_entries: "{n} entradas verificadas", r_hashes: "{n} hashes recalculados a partir del contenido y las sales",
+    r_cut: "{a} de {b} pronósticos registrados antes de su límite", r_links: "Numeración y enlaces: sin huecos ni rupturas"
   });
 
-  var TS_COL = { bitcoin: "var(--good)", pending: "var(--peak)", queued: "var(--charge)", failed: "var(--critical)", sample: "var(--neutral-mark)", off: "var(--neutral-mark)" };
-  var tsTimer = null;
+  var KCOL = { terms: "var(--neutral-mark)", forecast: "var(--charge)", actuals: "var(--sun)" };
+  var vsel = { chain: null };
   function fillT(k, o) { return t(k).replace(/\{(\w+)\}/g, function (_, n) { return o[n]; }); }
-  function pill(st) {
-    return '<span class="mono small" style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;border:1px solid ' + TS_COL[st] +
-      ';color:' + TS_COL[st] + ';white-space:nowrap"><span style="width:7px;height:7px;border-radius:50%;background:' + TS_COL[st] + (st === "pending" || st === "queued" ? ";animation:tspulse 1.4s infinite" : "") + '"></span>' + esc(t("st_" + st)) + "</span>";
+  function hexOf(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (x) { return ("0" + x.toString(16)).slice(-2); }).join(""); }
+  function bytesOf(hex) { var a = new Uint8Array(hex.length / 2); for (var i = 0; i < a.length; i++) a[i] = parseInt(hex.substr(i * 2, 2), 16); return a; }
+  function cat() { var n = 0, i, parts = arguments; for (i = 0; i < parts.length; i++) n += parts[i].length; var o = new Uint8Array(n), p = 0; for (i = 0; i < parts.length; i++) { o.set(parts[i], p); p += parts[i].length; } return o; }
+  function hmac(keyHex, msg) {
+    return crypto.subtle.importKey("raw", bytesOf(keyHex), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]).then(function (k) {
+      return crypto.subtle.sign("HMAC", k, new TextEncoder().encode(msg));
+    }).then(function (b) { return new Uint8Array(b); });
   }
-  function blockLink(h) { return '<a class="mono" href="https://blockstream.info/block-height/' + h + '" target="_blank" rel="noopener">#' + Number(h).toLocaleString(loc()) + "</a>"; }
-  function sha256hex(text) {
-    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)).then(function (b) {
-      return Array.prototype.map.call(new Uint8Array(b), function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
+  function cutoffOf(day, terms) {
+    var d = new Date(day + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() - (terms.cutoff_days_before == null ? 1 : terms.cutoff_days_before));
+    var hm = (terms.cutoff_local || "10:00").split(":"), off = terms.utc_offset_hours == null ? -6 : terms.utc_offset_hours;
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), Number(hm[0]) - off, Number(hm[1]));
+  }
+  // The same checks as tools/verify_vispera.py. mode "public" (hashes only) or "client" (disclosure with chain keys).
+  function verifyChain(doc, mode) {
+    var probs = [], prev = null, late = 0, nf = 0, i = 0, es = doc.entries;
+    function step() {
+      if (i >= es.length) return Promise.resolve();
+      var e = es[i], k = i;
+      if (e.seq !== k) probs.push("#" + k + ": numbered " + e.seq);
+      if ((e.prev || null) !== prev) probs.push("#" + k + ": does not point at #" + (k - 1));
+      if (k === 0 && e.kind !== "terms") probs.push("#0 is not the terms");
+      if (e.kind === "forecast") { nf++; if (!e.rekor.integrated_time || Date.parse(e.rekor.integrated_time) >= cutoffOf(e.target_day, doc.terms)) late++; }
+      var done = function () { prev = e.hash; i++; return step(); };
+      if (mode !== "client") return done();
+      var body = JSON.parse(e.content);
+      if (body.seq !== e.seq || body.kind !== e.kind || body.target_day !== e.target_day) probs.push("#" + k + ": label differs from what was hashed");
+      var saltP = Promise.resolve(new Uint8Array(0));
+      if (e.kind === "forecast") {
+        var ck = doc.chain_keys[e.target_day.slice(0, 7)];
+        if (!ck) { probs.push("#" + k + ": no chain key"); return done(); }
+        saltP = hmac(ck, "salt|" + e.target_day + "|" + e.seq);
+      }
+      return saltP.then(function (s) {
+        var pre = cat(s, new TextEncoder().encode(e.content), prev ? bytesOf(prev) : new Uint8Array(32));
+        return crypto.subtle.digest("SHA-256", pre);
+      }).then(function (h) { if (hexOf(h) !== e.hash) probs.push("#" + k + ": hash does not match its content"); return done(); });
+    }
+    return step().then(function () { return { ok: !probs.length, problems: probs, n: es.length, nf: nf, before: nf - late }; });
+  }
+  function showResult(el, r, mode) {
+    el.innerHTML = '<div class="banner ' + (r.ok ? "done" : "missed") + '" style="flex-direction:column;align-items:flex-start;gap:4px"><strong>' + (r.ok ? "✓ " : "✗ ") + esc(t(r.ok ? "r_ok" : "r_bad")) + "</strong>" +
+      '<span class="small">' + esc(fillT("r_entries", { n: r.n })) + " · " + esc(t("r_links")) + "</span>" +
+      (mode === "client" ? '<span class="small">' + esc(fillT("r_hashes", { n: r.n })) + "</span>" : "") +
+      '<span class="small">' + esc(fillT("r_cut", { a: r.before, b: r.nf })) + "</span>" +
+      r.problems.map(function (p) { return '<span class="small mono" style="color:var(--critical)">' + esc(p) + "</span>"; }).join("") + "</div>";
+  }
+  function short(h) { return h ? h.slice(0, 8) : "—"; }
+
+  function timestampsPage() {
+    return api("/v1/vispera/index").then(function (ix) {
+      if (!ix.chains.length) return renderNoChain();
+      var id = vsel.chain && ix.chains.some(function (c) { return c.id === vsel.chain; }) ? vsel.chain : ix.chains[0].id;
+      vsel.chain = id;
+      return api("/v1/vispera/chains/" + id).then(function (ch) { renderChain(ix, ch); });
     });
   }
 
-  function timestampsPage() {
-    clearTimeout(tsTimer);
-    var site = qsel.site;
-    return Promise.all([api("/v1/qenergy/sites"), api("/v1/qenergy/sites/" + site + "/anchors")]).then(function (r) {
-      var s = r[0].filter(function (x) { return x.id === site; })[0] || r[0][0], b = r[1], c = b.counts;
-      var real = b.versions.filter(function (v) { return !v.sample; }), total = real.length;
-      var bar = total ? ["bitcoin", "pending", "queued", "failed"].map(function (k) {
-        return c[k] ? '<span title="' + esc(t("st_" + k)) + " " + c[k] + '" style="width:' + (c[k] / total * 100).toFixed(2) + "%;background:" + TS_COL[k] + ';display:inline-block;height:100%"></span>' : "";
-      }).join("") : "";
-      var legend = ["bitcoin", "pending", "queued", "failed"].map(function (k) {
-        return '<span class="small" style="display:inline-flex;align-items:center;gap:6px;margin-right:16px"><span style="width:10px;height:10px;border-radius:3px;background:' + TS_COL[k] + '"></span>' + esc(t("st_" + k)) + " <span class=\"mono\">" + c[k] + "</span></span>";
-      }).join("");
+  function renderNoChain() {
+    var form = can("vispera.admin") ? '<section class="card"><h2>' + esc(t("v_start")) + '</h2><form data-vstart style="display:grid;gap:10px;max-width:640px">' +
+      [["chain_id", "atotonilco"], ["quantity", "hourly sales offer, MW"], ["start_date", ""], ["scoring", "MAE of offered vs metered MWh, every day from the start date"]].map(function (f) {
+        return '<label class="small muted">' + f[0] + '<input name="' + f[0] + '" value="' + esc(f[1]) + '"' + (f[0] === "start_date" ? ' type="date"' : "") + ' style="display:block;width:100%;min-height:40px;background:var(--bg-300);color:var(--ink);border:1px solid var(--line-control);border-radius:6px;padding:0 10px;font:inherit"></label>';
+      }).join("") + '<button class="btn primary" type="submit">' + esc(t("v_start_btn")) + "</button></form></section>" : "";
+    frame("timestamps", '<div class="head"><div><div class="eyebrow">' + esc(t("v_eyebrow")) + '</div><h1 class="title">' + esc(t("v_none")) + '</h1><p class="muted" style="margin:4px 0 0;max-width:760px">' + esc(t("v_none_d")) + "</p></div></div>" + form, 0);
+    var f = document.querySelector("[data-vstart]");
+    if (f) f.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var v = {}; new FormData(f).forEach(function (x, k) { v[k] = x; });
+      api("/v1/vispera/chains", { method: "POST", body: { chain_id: v.chain_id, subject: { site: v.chain_id }, quantity: v.quantity, start_date: v.start_date, scoring: v.scoring } })
+        .then(function () { route(); }, function (e) { toast((e.details && e.details[0] && e.details[0].message) || e.message, true); });
+    });
+  }
 
-      // step-by-step for the newest real forecast
-      var L = real[0], steps = "";
-      if (L) {
-        var reached = { queued: 2, failed: 2, pending: 3, bitcoin: 4, off: 2 }[L.status] || 2;
-        var st = [
-          [t("ts_s1"), dateTime(L.received_at) + " · v" + L.version],
-          [t("ts_s2"), '<span class="mono">' + esc(L.sha256.slice(0, 12)) + "…</span><br>" + esc(t("ts_s2_d"))],
-          [t("ts_s3"), L.stamped_at ? dateTime(L.stamped_at) + "<br>" + esc(t("ts_s3_d")) : (L.status === "failed" ? '<span class="bad">' + esc(L.error || "") + "</span>" : esc(t("ts_s3_d")))],
-          [t("ts_s4"), L.block_height ? esc(t("ts_block")) + " " + blockLink(L.block_height) : esc(t("ts_s4_wait"))]
-        ];
-        steps = '<ol class="tssteps">' + st.map(function (x, i) {
-          var cls = i < reached ? "done" : (i === reached ? (L.status === "failed" ? "fail" : "now") : "");
-          return '<li class="' + cls + '"><span class="dot">' + (i < reached ? "✓" : i + 1) + '</span><div><strong>' + esc(x[0]) + '</strong><div class="small muted">' + x[1] + "</div></div></li>";
-        }).join("") + "</ol><p class=\"small muted\" style=\"margin:8px 0 0\">" + esc(dateLong(L.day)) + " · " + esc(L.model_version) + "</p>";
-      } else steps = '<p class="muted" style="margin:0">' + esc(t("ts_none")) + "</p>";
-
-      var cols = t("ts_c");
-      var rows = b.versions.map(function (v, i) {
-        return "<tr" + (v.sample ? ' style="opacity:.6"' : "") + '><td class="mono">' + v.day + '</td><td class="mono">' + v.version + '</td><td class="mono small">' + esc(dateTime(v.received_at)) +
-          '</td><td class="small">' + (v.sample ? '<span class="muted">—</span>' : v.on_time ? '<span style="color:var(--good)">✓ ' + esc(t("ts_ontime")) + "</span>" : '<span style="color:var(--critical)">' + esc(t("ts_late")) + "</span>") +
-          '</td><td class="mono small" title="' + v.sha256 + '">' + v.sha256.slice(0, 10) + "…</td><td>" + pill(v.status) + "</td><td>" + (v.block_height ? blockLink(v.block_height) : '<span class="muted">—</span>') +
-          '</td><td style="white-space:nowrap"><button class="btn" type="button" data-tscheck="' + i + '">' + esc(t("ts_check")) + "</button> " +
-          (v.proof_url ? '<button class="btn" type="button" data-tsproof="' + i + '">' + esc(t("ts_proof")) + "</button> " : "") +
-          '<button class="btn" type="button" data-tscanon="' + i + '">{ }</button> <span class="small" data-tsres="' + i + '"></span></td></tr>';
-      }).join("");
-
-      frame("timestamps",
-        '<style>@keyframes tspulse{0%,100%{opacity:1}50%{opacity:.25}}' +
-        '.tssteps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;position:relative}' +
-        '.tssteps li{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:10px;background:var(--bg-300);border:1px solid var(--line-subtle)}' +
-        '.tssteps .dot{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-size:13px;border:1px solid var(--line-control);color:var(--ink-3)}' +
-        '.tssteps li.done{border-color:var(--good)}.tssteps li.done .dot{background:var(--good);border-color:var(--good);color:#06150E}' +
-        '.tssteps li.now{border-color:var(--peak)}.tssteps li.now .dot{border-color:var(--peak);color:var(--peak);animation:tspulse 1.4s infinite}' +
-        '.tssteps li.fail{border-color:var(--critical)}.tssteps li.fail .dot{border-color:var(--critical);color:var(--critical)}' +
-        '@media (max-width:720px){.tssteps{grid-template-columns:1fr 1fr}' +
-        '.tstable thead{display:none}.tstable,.tstable tbody{display:block;min-width:0}.tstable tr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:12px 0;border-bottom:1px solid var(--line-subtle)}' +
-        '.tstable td{display:block;padding:0;border:0}.tstable td:last-child{flex-basis:100%}}@media (max-width:420px){.tssteps{grid-template-columns:1fr}}</style>' +
-        '<div class="head"><div><div class="eyebrow">' + esc(fillT("ts_eyebrow", { site: s.name })) + '</div><h1 class="title">' + esc(t("ts_title")) + '</h1><p class="muted" style="margin:4px 0 0;max-width:760px">' + esc(t("ts_lede")) + "</p></div>" +
-        (can("forecast.write") ? '<button class="btn primary" type="button" data-tsrefresh>' + esc(t("ts_refresh")) + "</button>" : "") + "</div>" +
-        (b.enabled ? "" : '<div class="banner missed"><span>' + esc(t("ts_off")) + "</span></div>") +
-        '<div class="row" style="gap:12px">' + kpi(t("ts_k_btc"), '<span style="color:var(--good)">' + c.bitcoin + "</span>", esc(t("ts_k_btc_c"))) +
-        kpi(t("ts_k_pend"), '<span style="color:var(--peak)">' + c.pending + "</span>", esc(t("ts_k_pend_c"))) +
-        kpi(t("ts_k_queue"), '<span style="color:var(--charge)">' + c.queued + "</span>", esc(t("ts_k_queue_c"))) +
-        kpi(t("ts_k_fail"), '<span style="color:var(--critical)">' + c.failed + "</span>", esc(t("ts_k_fail_c"))) + "</div>" +
-        '<section class="card"><div class="head" style="align-items:baseline"><h2>' + esc(t("ts_progress")) + '</h2><span class="small muted">' + esc(fillT("ts_of", { n: c.bitcoin, t: total })) + "</span></div>" +
-        '<div class="bar" style="height:14px;border-radius:7px;display:flex">' + bar + "</div><div style=\"margin-top:10px\">" + legend + "</div>" +
-        (c.sample ? '<p class="small muted" style="margin:8px 0 0">' + esc(fillT("ts_samples", { n: c.sample })) + "</p>" : "") + "</section>" +
-        '<section class="card"><h2>' + esc(t("ts_latest")) + "</h2>" + steps + "</section>" +
-        '<section class="card"><h2>' + esc(t("ts_all")) + '</h2><div class="tablewrap"><table class="tstable"><thead><tr>' + cols.map(function (x) { return "<th>" + esc(x) + "</th>"; }).join("") + "</tr></thead><tbody>" + rows + "</tbody></table></div></section>" +
-        '<section class="card"><h2>' + esc(t("ts_how")) + '</h2><ol class="small" style="margin:0;padding-left:20px;line-height:1.7"><li>' + esc(t("ts_how1")) + "</li><li>" + esc(fillT("ts_how2", { c: "{ }" })) + "</li><li>" + esc(t("ts_how3")) + "</li></ol>" +
-        '<p class="small muted mono" style="margin:10px 0 0;overflow-wrap:anywhere">' + b.calendars.map(esc).join(" · ") + "</p></section>", 0);
-
-      var root = document.getElementById("app");
-      root.querySelectorAll("[data-tscheck]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          var v = b.versions[Number(btn.dataset.tscheck)], out = root.querySelector('[data-tsres="' + btn.dataset.tscheck + '"]');
-          api(v.canonical_url, { raw: true }).then(sha256hex).then(function (h) {
-            out.innerHTML = h === v.sha256 ? '<span style="color:var(--good)">✓ ' + esc(t("ts_ok")) + "</span>" : '<span style="color:var(--critical)">✗ ' + esc(t("ts_bad")) + "</span>";
-          }, function (e) { toast(e.message || t("err_network"), true); });
-        });
-      });
-      root.querySelectorAll("[data-tsproof]").forEach(function (btn) {
-        btn.addEventListener("click", function () { var v = b.versions[Number(btn.dataset.tsproof)]; download(v.proof_url, site + "-" + v.day + "-v" + v.version + ".json.ots"); });
-      });
-      root.querySelectorAll("[data-tscanon]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          var v = b.versions[Number(btn.dataset.tscanon)];
-          api(v.canonical_url, { raw: true }).then(function (txt) {
-            var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([txt], { type: "application/json" }));
-            a.download = site + "-" + v.day + "-v" + v.version + ".json"; document.body.appendChild(a); a.click(); a.remove();
-          }, function (e) { toast(e.message, true); });
-        });
-      });
-      var rb = root.querySelector("[data-tsrefresh]");
-      if (rb) rb.addEventListener("click", function () {
-        rb.disabled = true;
-        api("/v1/qenergy/anchors/refresh", { method: "POST" }).then(function (o) {
-          toast(fillT("ts_refreshed", { a: o.anchored || 0, p: o.still_pending || 0, s: o.stamped || 0, f: o.failed || 0 })); route();
-        }, function (e) { rb.disabled = false; toast(e.message, true); });
-      });
-      // keep the page live while anything is on its way
-      if (c.queued || c.pending) tsTimer = setTimeout(function () { if (currentRoute().name === "timestamps") route(); }, 60000);
+  function renderChain(ix, ch) {
+    var tm = ch.terms, sm = ch.summary, es = ch.entries;
+    var name = (tm.subject && (tm.subject.site || tm.subject.zona || tm.subject.nodo)) || ch.chain;
+    name = name.charAt(0).toUpperCase() + name.slice(1);
+    var row = function (k, v) { return '<div style="display:grid;grid-template-columns:170px 1fr;gap:12px;padding:6px 0;border-bottom:1px solid var(--line-subtle)"><span class="small muted">' + esc(t(k)) + '</span><span class="small">' + v + "</span></div>"; };
+    var e0 = es[0];
+    var terms = '<section class="card" style="border-left:4px solid var(--neutral-mark)"><h2>' + esc(t("v_terms")) + '</h2><p class="small muted" style="margin:0">' + esc(t("v_terms_d")) + "</p><div>" +
+      row("t_quantity", esc(tm.quantity)) + row("t_market", esc(tm.market)) + row("t_horizon", esc(tm.horizon)) +
+      row("t_cutoff", esc(fillT("t_cutoff_v", { t: tm.cutoff_local, d: tm.cutoff_days_before }))) + row("t_start", '<span class="mono">' + esc(tm.start_date) + "</span>") +
+      row("t_scoring", esc(tm.scoring)) + row("t_actuals", esc(tm.actuals_source)) +
+      row("t_recorded", esc(dateTime(e0.recorded_at)) + (e0.rekor.log_index != null ? ' · Rekor <a href="' + e0.rekor.url + '" target="_blank" rel="noopener" class="mono">#' + e0.rekor.log_index + "</a>" : "")) + "</div></section>";
+    var kpis = '<div class="row" style="gap:12px">' +
+      kpi(t("v_k_fc"), '<span style="color:var(--charge)">' + sm.forecasts + "</span>", esc(fillT("v_k_fc_c", { d: sm.forecast_days }))) +
+      kpi(t("v_k_cut"), '<span style="color:var(--good)">' + sm.rekor_before_cutoff + '</span><span class="unit"> / ' + sm.forecasts + "</span>", esc(t("v_k_cut_c"))) +
+      kpi(t("v_k_btc"), '<span style="color:var(--peak)">' + sm.bitcoin + '</span><span class="unit"> / ' + ch.length + "</span>", esc(fillT("v_k_btc_c", { n: ch.length }))) +
+      kpi(t("v_k_len"), String(ch.length), '<span class="mono">' + esc(fillT("v_k_len_c", { h: short(ch.head) })) + "</span>") + "</div>";
+    var tail = es.slice(-7), skipped = es.length - tail.length;
+    var strip = '<section class="card"><h2>' + esc(t("v_strip")) + '</h2><div class="vstrip">' + (skipped ? '<div class="vgap mono small muted">… ' + skipped + "</div>" : "") +
+      tail.map(function (e, i) {
+        var sealed = e.kind === "forecast";
+        return (i || skipped ? '<span class="varrow">→</span>' : "") + '<div class="vblock ' + e.kind + '"><div class="mono small" style="opacity:.8">#' + e.seq + " · " + esc(t("k_" + e.kind)) + '</div><div class="mono small">' + esc(e.target_day) +
+          '</div><div class="mono" style="font-size:13px">' + short(e.hash) + '…</div><div class="small" style="opacity:.8">' + (sealed ? "🔒 " + esc(t("v_sealed")) : esc(t("v_clear"))) + "</div></div>";
+      }).join("") + "</div>" +
+      '<p class="small muted mono" style="margin:6px 0 0">s<sub>i</sub> = SHA-256( salt<sub>i</sub> ‖ content<sub>i</sub> ‖ s<sub>i−1</sub> )</p></section>';
+    var rows = es.slice().reverse().map(function (e) {
+      var cut = e.kind !== "forecast" ? '<span class="muted">—</span>' : e.rekor_before_cutoff === true ? '<span style="color:var(--good)">✓ ' + esc(t("v_before")) + "</span>" : e.rekor_before_cutoff === false ? '<span style="color:var(--critical)">' + esc(t("v_late")) + "</span>" : '<span class="muted">' + esc(t("v_wait")) + "</span>";
+      return '<tr><td class="mono">' + e.seq + '</td><td><span class="mono small" style="padding:2px 8px;border-radius:999px;border:1px solid ' + KCOL[e.kind] + ";color:" + KCOL[e.kind] + '">' + esc(t("k_" + e.kind)) + '</span></td><td class="mono small">' + esc(e.target_day) +
+        '</td><td class="mono small" title="' + e.hash + '">' + short(e.hash) + "…</td><td class=\"small\">" + (e.rekor.integrated_time ? esc(dateTime(e.rekor.integrated_time)) + ' <a class="mono" href="' + e.rekor.url + '" target="_blank" rel="noopener">#' + e.rekor.log_index + "</a>" : '<span class="muted">—</span>') +
+        "</td><td class=\"small\">" + cut + '</td><td class="small">' + (e.bitcoin.block_height ? '<a class="mono" href="https://blockstream.info/block-height/' + e.bitcoin.block_height + '" target="_blank" rel="noopener">#' + Number(e.bitcoin.block_height).toLocaleString(loc()) + "</a>" : '<span class="muted">' + esc(e.bitcoin.status) + "</span>") +
+        "</td><td>" + (e.bitcoin.proof_url ? '<button class="btn" type="button" data-vots="' + e.seq + '">.ots</button>' : "") + "</td></tr>";
+    }).join("");
+    var table = '<section class="card"><h2>' + esc(t("v_entries")) + '</h2><div class="tablewrap"><table class="tstable"><thead><tr>' + t("v_cols").map(function (x) { return "<th>" + esc(x) + "</th>"; }).join("") + "</tr></thead><tbody>" + rows + "</tbody></table></div></section>";
+    var checks = '<section class="card"><h2>' + esc(t("v_check")) + '</h2><div class="row" style="align-items:stretch;gap:12px">' +
+      '<div class="card" style="background:var(--bg-200)"><strong>' + esc(t("v_check_pub")) + '</strong><p class="small muted" style="margin:0">' + esc(t("v_check_pub_d")) + '</p><button class="btn primary" type="button" data-vpub>' + esc(t("v_check_pub")) + '</button><div data-vpubres></div></div>' +
+      (can("vispera.disclose") ? '<div class="card" style="background:var(--bg-200)"><strong>' + esc(t("v_check_cli")) + '</strong><p class="small muted" style="margin:0">' + esc(t("v_check_cli_d")) + '</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-vcli>' + esc(t("v_check_cli")) + '</button><button class="btn" type="button" data-vdl>' + esc(t("v_dl")) + '</button></div><div data-vclires></div></div>' : "") +
+      '</div><p class="small muted" style="margin:0">' + esc(t("v_cmd")) + '</p><pre class="mono small" style="margin:0;padding:12px;background:var(--bg-300);border-radius:8px;overflow-x:auto">python verify_vispera.py public chain.json\npython verify_vispera.py client disclosure.json --rekor</pre></section>';
+    frame("timestamps",
+      '<style>.vstrip{display:flex;align-items:stretch;gap:6px;overflow-x:auto;padding:4px 0}.vblock{flex:none;min-width:104px;padding:10px;border-radius:10px;display:flex;flex-direction:column;gap:2px}' +
+      '.vblock.terms{background:var(--bg-300);border:1px solid var(--neutral-mark)}.vblock.forecast{background:#0E2236;border:1px solid var(--charge)}.vblock.actuals{background:transparent;border:1px dashed var(--sun)}' +
+      '.varrow{align-self:center;color:var(--ink-muted)}.vgap{align-self:center;padding:0 6px}' +
+      '@media (max-width:720px){.tstable thead{display:none}.tstable,.tstable tbody{display:block;min-width:0}.tstable tr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:12px 0;border-bottom:1px solid var(--line-subtle)}.tstable td{display:block;padding:0;border:0}}</style>' +
+      '<div class="head"><div><div class="eyebrow">' + esc(t("v_eyebrow")) + '</div><h1 class="title">' + esc(fillT("v_title", { name: name })) + '</h1><p class="muted" style="margin:4px 0 0;max-width:820px">' + esc(t("v_lede")) + "</p></div></div>" +
+      kpis + terms + strip + checks + table, 0);
+    var root = document.getElementById("app");
+    root.querySelector("[data-vpub]").addEventListener("click", function () {
+      verifyChain(ch, "public").then(function (r) { showResult(root.querySelector("[data-vpubres]"), r, "public"); });
+    });
+    var cli = root.querySelector("[data-vcli]");
+    if (cli) cli.addEventListener("click", function () {
+      cli.disabled = true;
+      api("/v1/vispera/chains/" + ch.chain + "/disclosure").then(function (d) { return verifyChain(d, "client"); })
+        .then(function (r) { cli.disabled = false; showResult(root.querySelector("[data-vclires]"), r, "client"); }, function (e) { cli.disabled = false; toast(e.message, true); });
+    });
+    var dl = root.querySelector("[data-vdl]");
+    if (dl) dl.addEventListener("click", function () { download("/v1/vispera/chains/" + ch.chain + "/disclosure", ch.chain + "-disclosure.json"); });
+    root.querySelectorAll("[data-vots]").forEach(function (b) {
+      b.addEventListener("click", function () { download("/v1/vispera/chains/" + ch.chain + "/entries/" + b.dataset.vots + "/proof.ots", ch.chain + "-" + b.dataset.vots + ".ots"); });
     });
   }
 
@@ -1412,6 +1439,7 @@
     if (!state.me) { signIn(state.key); return; }
     var r = currentRoute(), page = PAGES[r.name] || homePage;
     if (state.me.user.role === "partner" && r.name !== "qenergy" && r.name !== "timestamps") { page = qenergyPage; r = { name: "qenergy" }; }
+    if (state.me.user.role === "client" && r.name !== "timestamps") { page = timestampsPage; r = { name: "timestamps" }; }
     page(r.arg).catch(function (e) {
       if (e && e.status === 401) { state.key = null; state.me = null; save("key", null); signinPage(); return; }
       errorPage(e || {});

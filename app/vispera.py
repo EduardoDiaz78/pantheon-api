@@ -1,7 +1,7 @@
 """Víspera: a public, salted hash chain of forecasts, anchored in Bitcoin (OpenTimestamps) and Sigstore Rekor.
 
 Keys (sealed, never public):
-    month key  K_m   32 random bytes, one per calendar month of target days (12 a year), held for the notary
+    month key  K_m   32 random bytes, one per calendar month of target days (12 a year), exportable for escrow
     chain key  C     = HMAC-SHA256(K_m, "chain|" + chain_id)
     salt       n_i   = HMAC-SHA256(C, "salt|" + target_day + "|" + seq)          (forecast entries only)
 
@@ -15,7 +15,6 @@ Who checks what:
                   anchor is earlier than the cutoff fixed in entry 0. Sees no forecast.
     client (NDA)  receives the whole chain from entry 0 to a date (all or nothing) with the forecasts and the chain
                   keys for those months; derives every salt, recomputes every hash, scores against the actuals.
-    notary        holds the month keys and releases them on request; computes nothing.
 
 Canonical JSON: keys sorted, no spaces, UTF-8 (json.dumps(sort_keys=True, separators=(",", ":"), ensure_ascii=False)).
 """

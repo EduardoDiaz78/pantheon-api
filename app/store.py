@@ -29,7 +29,6 @@ PERMISSIONS: dict[Role, set[str]] = {
     Role.engine: {"forecast.write"},
     Role.partner: {"qenergy.read", "qenergy.write", "vispera.disclose"},
     Role.client: {"vispera.disclose"},
-    Role.notary: {"vispera.keys"},
 }
 
 
@@ -57,14 +56,13 @@ class Store:
             User(id="u-admin", name="Genau", role=Role.admin, email="admin@[client].mx"),
             User(id="u-engine", name="Pantheon engine", role=Role.engine, email="engine@genau-ai.com", language="en"),
             User(id="u-jose", name="José Antonio", role=Role.partner, email="[jose-antonio]@qenergy.mx"),
-            User(id="u-client", name="Client under NDA", role=Role.client, email="[analyst]@[bank].mx"),
-            User(id="u-notary", name="Notario", role=Role.notary, email="[notario]@[notaria].mx"),
+            User(id="u-client", name="Bank analyst", role=Role.client, email="[analyst]@[bank].mx"),
         ]}
         # Demo keys only. Production: hashed keys, scoped to an organization's sites.
         self.api_keys: dict[str, str] = {
             "demo-operator": "u-daniela", "demo-manager": "u-mauricio", "demo-viewer": "u-lucia",
             "demo-auditor": "u-andres", "demo-admin": "u-admin", "demo-engine": "u-engine", "demo-qenergy": "u-jose",
-            "demo-client": "u-client", "demo-notary": "u-notary",
+            "demo-client": "u-client",
         }
         # Real keys for the engine and QEnergy come from the host's environment, never from code.
         import os
@@ -72,7 +70,7 @@ class Store:
             if os.getenv(env):
                 self.api_keys[os.environ[env]] = uid
         if os.getenv("PANTHEON_DEMO_KEYS", "true").lower() != "true":
-            for k in ("demo-engine", "demo-qenergy", "demo-client", "demo-notary"):
+            for k in ("demo-engine", "demo-qenergy", "demo-client"):
                 self.api_keys.pop(k, None)
         # Verified WhatsApp numbers (digits only) → user. Sample numbers.
         self.whatsapp: dict[str, str] = {"528100004821": "u-daniela", "528100007310": "u-mauricio"}

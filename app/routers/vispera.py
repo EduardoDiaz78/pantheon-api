@@ -3,7 +3,7 @@
 Public, no sign-in:  the index of chains, each chain's entries (hashes, kinds, target days, anchor times, clear
                      content for terms and actuals), Bitcoin proofs and Pantheon's Rekor public key.
 Client under NDA:    the whole chain from entry 0 with every forecast and the chain keys to derive the salts.
-Notary:              the month keys.
+Genau (admin):       exports the month keys for backup or escrow.
 """
 from __future__ import annotations
 
@@ -209,7 +209,7 @@ def disclosure(chain_id: str, through: Optional[date] = Query(None, description=
             "entries": [{**public_entry(e, ch["terms"]), "content": e["content"]} for e in es]}
 
 
-@router.get("/keys", summary="Notary: the month keys (sealed). Release is logged")
+@router.get("/keys", summary="Admin: export the month keys (sealed) for backup or escrow. Each export is logged")
 def month_keys(c: Caller = Depends(need("vispera.keys")), store: QStore = Depends(get_qstore)) -> dict:
     return {"released_to": c.actor, "keys": store.month_keys(mark_released=True)}
 

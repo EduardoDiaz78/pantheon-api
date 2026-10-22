@@ -621,7 +621,7 @@ def test_settlement_math(qclient):
 
 
 # ---------- Víspera chain ----------
-ADMIN, CLIENT, NOTARY = {"X-API-Key": "demo-admin"}, {"X-API-Key": "demo-client"}, {"X-API-Key": "demo-notary"}
+ADMIN, CLIENT = {"X-API-Key": "demo-admin"}, {"X-API-Key": "demo-client"}
 TERMS = {"chain_id": "atotonilco", "subject": {"site": "atotonilco", "central": "01GTT"}, "quantity": "hourly sales offer, MW",
          "start_date": "2030-01-01", "scoring": "MAE of offered vs metered MWh, every day from the start date"}
 
@@ -670,7 +670,6 @@ def test_client_disclosure_verifies_and_tampering_fails(qclient, tmp_path):
     for d, mw in [("2030-01-01", 0.4), ("2030-01-02", 0.5), ("2030-02-01", 0.6)]:  # two months, two chain keys
         c.post(f"/v1/qenergy/sites/atotonilco/forecasts/{d}", json=_fc(mw), headers=ENGINE)
     assert c.get("/v1/vispera/chains/atotonilco/disclosure", headers=ENGINE).status_code == 403
-    assert c.get("/v1/vispera/chains/atotonilco/disclosure", headers=NOTARY).status_code == 403
     d = c.get("/v1/vispera/chains/atotonilco/disclosure", headers=CLIENT).json()
     assert set(d["chain_keys"]) == {"2030-01", "2030-02"} and d["entries"][0]["seq"] == 0
     assert V.verify_chain(d["entries"], d["chain_keys"])["ok"]
@@ -690,8 +689,8 @@ def test_client_disclosure_verifies_and_tampering_fails(qclient, tmp_path):
     assert not V.verify_chain(t["entries"], t["chain_keys"])["ok"]
     # the public chain alone checks numbering, links and cutoffs
     assert vv.check(c.get("/v1/vispera/chains/atotonilco").json(), "public", online=False) == 0
-    # the notary's month key yields the same chain key the client received
-    keys = {k["month"]: k["key"] for k in c.get("/v1/vispera/keys", headers=NOTARY).json()["keys"]}
+    # the escrowed month key yields the same chain key the client received
+    keys = {k["month"]: k["key"] for k in c.get("/v1/vispera/keys", headers=ADMIN).json()["keys"]}
     assert V.chain_key(bytes.fromhex(keys["2030-01"]), "atotonilco").hex() == d["chain_keys"]["2030-01"]
     assert c.get("/v1/vispera/keys", headers=CLIENT).status_code == 403
 
