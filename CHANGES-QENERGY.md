@@ -31,6 +31,19 @@ Content-Type: application/json
 - `buy_fixed_mw`, `buy_segments` (up to 3): the purchase offer at load centre AXC0611GTT79.
 - Answer: `201` with `version` and `sha256`. A missing or repeated hour is refused with `422`.
 
+## Bitcoin timestamps (OpenTimestamps)
+
+Every real forecast's SHA-256 is sent to public OpenTimestamps calendars right after it is posted (the post itself is
+never slowed or refused because of this). The calendars batch hashes into a Bitcoin transaction; within a few hours the
+proof points at a Bitcoin block. Only the hash leaves Pantheon, never the forecast.
+
+- `GET …/forecasts/{day}` shows `anchor.status`: `queued` → `pending` (calendars hold it) → `bitcoin` (with `block_height`).
+- `GET …/forecasts/{day}/proof.ots?version=N` downloads the proof; `GET …/forecasts/{day}/canonical?version=N` the exact bytes.
+- Anyone can check without trusting Genau: `ots verify -f forecast.json forecast.json.ots`, or drop both files on opentimestamps.org.
+  A Bitcoin block mined before 10:00 the day before delivery proves the forecast existed before the market cleared.
+- `POST /v1/qenergy/anchors/refresh` (engine or admin) stamps anything missed and completes pending proofs; the API also
+  does this itself every 30 minutes while awake. Sample data is never stamped. `PANTHEON_OTS=false` switches it off.
+
 ## For QEnergy
 
 On the Pantheon site, the QEnergy login sees one page: choose the operating day, then download

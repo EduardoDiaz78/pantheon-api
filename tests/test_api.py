@@ -496,8 +496,40 @@ from app.routers.qenergy import get_qstore
 ENGINE, QENERGY = {"X-API-Key": "demo-engine"}, {"X-API-Key": "demo-qenergy"}
 
 
+class FakeCalendar:
+    """Stands in for an OpenTimestamps calendar: promises at once, 'confirms' in Bitcoin block 900000 once CONFIRMED."""
+    CONFIRMED, DOWN = False, False
+
+    def __init__(self, url):
+        self.url = url
+
+    def submit(self, digest, timeout=None):
+        from opentimestamps.core.notary import PendingAttestation
+        from opentimestamps.core.op import OpAppend, OpSHA256
+        from opentimestamps.core.timestamp import Timestamp
+        if FakeCalendar.DOWN:
+            raise ConnectionError("calendar down")
+        ts = Timestamp(digest)
+        leaf = ts.ops.add(OpAppend(b"nonce-" + self.url.encode()[-8:]))
+        commit = leaf.ops.add(OpSHA256())
+        commit.attestations.add(PendingAttestation(self.url))
+        return ts
+
+    def get_timestamp(self, commitment, timeout=None):
+        from opentimestamps.core.notary import BitcoinBlockHeaderAttestation
+        from opentimestamps.core.timestamp import Timestamp
+        if not FakeCalendar.CONFIRMED:
+            raise KeyError("not yet in a block")
+        ts = Timestamp(commitment)
+        ts.attestations.add(BitcoinBlockHeaderAttestation(900000))
+        return ts
+
+
 @pytest.fixture
-def qclient(client, tmp_path):
+def qclient(client, tmp_path, monkeypatch):
+    import opentimestamps.calendar
+    monkeypatch.setattr(opentimestamps.calendar, "RemoteCalendar", FakeCalendar)
+    FakeCalendar.CONFIRMED = FakeCalendar.DOWN = False
     qs = QStore(path=str(tmp_path / "q.db"), sample=True)
     app.dependency_overrides[get_qstore] = lambda: qs
     yield client
@@ -561,3 +593,44 @@ def test_settlement_math(qclient):
     assert "mda_mxn" in c.get("/v1/qenergy/sites/atotonilco/settlements?month=2026-11&format=csv", headers=QENERGY).text
     # sample month exists for the page demo
     assert len(c.get("/v1/qenergy/sites/atotonilco/settlements?month=2026-10", headers=QENERGY).json()["days"]) >= 1
+
+
+def test_forecast_is_timestamped_on_bitcoin(qclient):
+    from opentimestamps.core.notary import BitcoinBlockHeaderAttestation
+    from opentimestamps.core.serialize import BytesDeserializationContext
+    from opentimestamps.core.timestamp import DetachedTimestampFile
+    c, url = qclient, "/v1/qenergy/sites/atotonilco/forecasts/2026-10-24"
+    r = c.post(url, json=_fc(), headers=ENGINE)
+    assert r.status_code == 201 and r.json()["anchor"] == "queued"
+    sha = r.json()["sha256"]
+    a = c.get(url, headers=QENERGY).json()["anchor"]
+    assert a["status"] == "pending" and a["proof_url"].endswith("proof.ots?version=1")
+    # proof is a valid .ots for the exact canonical bytes
+    body = c.get(url + "/canonical?version=1", headers=QENERGY).content
+    ots = c.get(url + "/proof.ots?version=1", headers=QENERGY).content
+    f = DetachedTimestampFile.deserialize(BytesDeserializationContext(ots))
+    assert f.file_digest.hex() == sha == __import__("hashlib").sha256(body).hexdigest()
+    # Bitcoin confirms; the hourly refresh completes the proof
+    FakeCalendar.CONFIRMED = True
+    out = c.post("/v1/qenergy/anchors/refresh", headers=ENGINE).json()
+    assert out["anchored"] == 1 and out["still_pending"] == 0
+    a = c.get(url, headers=QENERGY).json()["anchor"]
+    assert a["status"] == "bitcoin" and a["block_height"] == 900000
+    f = DetachedTimestampFile.deserialize(BytesDeserializationContext(c.get(a["proof_url"], headers=QENERGY).content))
+    assert any(isinstance(x, BitcoinBlockHeaderAttestation) for _, x in f.timestamp.all_attestations())
+    assert c.get(url + "/history", headers=QENERGY).json()[0]["anchor_status"] == "bitcoin"
+    # sample data is never stamped; only the engine or admin can run the refresh
+    assert c.get("/v1/qenergy/sites/atotonilco/forecasts/2026-10-12", headers=QENERGY).json()["anchor"] is None
+    assert c.post("/v1/qenergy/anchors/refresh", headers=QENERGY).status_code == 403
+
+
+def test_calendars_down_then_retried(qclient):
+    c, url = qclient, "/v1/qenergy/sites/atotonilco/forecasts/2026-10-25"
+    FakeCalendar.DOWN = True
+    assert c.post(url, json=_fc(), headers=ENGINE).status_code == 201  # posting never fails because of Bitcoin
+    a = c.get(url, headers=QENERGY).json()["anchor"]
+    assert a["status"] == "failed" and "calendar down" in a["error"]
+    assert c.get(url + "/proof.ots", headers=QENERGY).status_code == 404
+    FakeCalendar.DOWN = False
+    assert c.post("/v1/qenergy/anchors/refresh", headers=ENGINE).json()["stamped"] == 1
+    assert c.get(url, headers=QENERGY).json()["anchor"]["status"] == "pending"

@@ -3,6 +3,7 @@ uvicorn[standard]>=0.30
 pydantic>=2.7
 python-multipart>=0.0.9   # CSV uploads (meter intervals, statements)
 openpyxl>=3.1              # optional: xlsx offer export
+opentimestamps>=0.4.5      # Bitcoin timestamps for forecast fingerprints
 
 # tests
 pytest>=8

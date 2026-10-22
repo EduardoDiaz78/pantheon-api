@@ -42,6 +42,8 @@ class QStore:
             CREATE TABLE IF NOT EXISTS results (id INTEGER PRIMARY KEY AUTOINCREMENT, site TEXT, day TEXT, payload TEXT,
               received_at TEXT, posted_by TEXT, sample INTEGER DEFAULT 0);
             CREATE INDEX IF NOT EXISTS rs_site_day ON results(site, day);
+            CREATE TABLE IF NOT EXISTS anchors (forecast_id INTEGER PRIMARY KEY, sha256 TEXT, ots BLOB, status TEXT,
+              block_height INTEGER, stamped_at TEXT, checked_at TEXT, error TEXT);
         """)
         if sample is None:
             sample = os.getenv("PANTHEON_QENERGY_SAMPLE", "true").lower() == "true"
@@ -59,16 +61,20 @@ class QStore:
                                   (site, day.isoformat(), body, sha, now, posted_by, model_version, int(sample)))
             self.db.commit()
             version = self.db.execute("SELECT COUNT(*) FROM forecasts WHERE site=? AND day=? AND id<=?", (site, day.isoformat(), cur.lastrowid)).fetchone()[0]
-        return {"site": site, "day": day.isoformat(), "version": version, "sha256": sha, "received_at": now, "model_version": model_version, "sample": sample}
+        return {"id": cur.lastrowid, "site": site, "day": day.isoformat(), "version": version, "sha256": sha, "received_at": now,
+                "model_version": model_version, "sample": sample}
 
-    def forecast(self, site: str, day: date) -> dict | None:
-        r = self.db.execute("SELECT * FROM forecasts WHERE site=? AND day=? ORDER BY id DESC LIMIT 1", (site, day.isoformat())).fetchone()
-        if not r:
+    def forecast(self, site: str, day: date, version: int | None = None) -> dict | None:
+        """Latest version, or a given version (1 = first posted)."""
+        total = self.db.execute("SELECT COUNT(*) FROM forecasts WHERE site=? AND day=?", (site, day.isoformat())).fetchone()[0]
+        if not total or (version is not None and not 1 <= version <= total):
             return None
-        version = self.db.execute("SELECT COUNT(*) FROM forecasts WHERE site=? AND day=?", (site, day.isoformat())).fetchone()[0]
-        return {"site": site, "day": r["day"], "version": version, "sha256": r["sha256"], "received_at": r["received_at"],
+        version = version or total
+        r = self.db.execute("SELECT * FROM forecasts WHERE site=? AND day=? ORDER BY id LIMIT 1 OFFSET ?",
+                            (site, day.isoformat(), version - 1)).fetchone()
+        return {"id": r["id"], "site": site, "day": r["day"], "version": version, "sha256": r["sha256"], "received_at": r["received_at"],
                 "posted_by": r["posted_by"], "model_version": r["model_version"], "sample": bool(r["sample"]),
-                "payload": {"hours": json.loads(r["payload"])["hours"]}, "canonical": r["payload"]}
+                "payload": {"hours": json.loads(r["payload"])["hours"]}, "canonical": r["payload"], "anchor": self.anchor(r["id"])}
 
     def forecast_days(self, site: str) -> list[dict]:
         rows = self.db.execute("""SELECT day, COUNT(*) n, MAX(received_at) last, MAX(sample) sample FROM forecasts WHERE site=?
@@ -76,9 +82,31 @@ class QStore:
         return [{"day": r["day"], "versions": r["n"], "last_received_at": r["last"], "sample": bool(r["sample"])} for r in rows]
 
     def history(self, site: str, day: date) -> list[dict]:
-        rows = self.db.execute("SELECT sha256, received_at, posted_by, model_version FROM forecasts WHERE site=? AND day=? ORDER BY id",
+        rows = self.db.execute("""SELECT f.sha256, f.received_at, f.posted_by, f.model_version, a.status anchor_status, a.block_height
+                                  FROM forecasts f LEFT JOIN anchors a ON a.forecast_id = f.id WHERE f.site=? AND f.day=? ORDER BY f.id""",
                                (site, day.isoformat())).fetchall()
         return [{"version": i + 1, **dict(r)} for i, r in enumerate(rows)]
+
+    # ---------- Bitcoin anchors (see anchor.py) ----------
+    def set_anchor(self, forecast_id: int, sha256: str, ots: bytes | None, status: str, block_height: int | None = None,
+                   error: str | None = None, stamped: bool = False) -> None:
+        now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        with self.lock:
+            prev = self.db.execute("SELECT stamped_at FROM anchors WHERE forecast_id=?", (forecast_id,)).fetchone()
+            stamped_at = now if stamped else (prev["stamped_at"] if prev else None)
+            self.db.execute("""INSERT OR REPLACE INTO anchors(forecast_id, sha256, ots, status, block_height, stamped_at, checked_at, error)
+                               VALUES (?,?,?,?,?,?,?,?)""", (forecast_id, sha256, ots, status, block_height, stamped_at, now, error))
+            self.db.commit()
+
+    def anchor(self, forecast_id: int) -> dict | None:
+        r = self.db.execute("SELECT * FROM anchors WHERE forecast_id=?", (forecast_id,)).fetchone()
+        return dict(r) if r else None
+
+    def unfinished_anchors(self) -> list[dict]:
+        """Real (non-sample) forecasts not yet anchored in a Bitcoin block: never stamped, failed, or pending."""
+        rows = self.db.execute("""SELECT f.id, f.sha256, a.ots, a.status FROM forecasts f LEFT JOIN anchors a ON a.forecast_id = f.id
+                                  WHERE f.sample = 0 AND (a.status IS NULL OR a.status != 'bitcoin') ORDER BY f.id""").fetchall()
+        return [dict(r) for r in rows]
 
     # ---------- results (cleared, metered, prices) ----------
     def put_results(self, site: str, day: date, payload: dict, posted_by: str, sample: bool = False) -> None:

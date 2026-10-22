@@ -14,10 +14,11 @@ from datetime import date, datetime, timedelta
 from functools import lru_cache
 from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
 
+from .. import anchor as btc
 from ..auth import Caller, need
 from ..errors import ApiError
 from ..qenergy_store import SITES, QStore
@@ -67,11 +68,23 @@ class ForecastReceipt(BaseModel):
     received_at: str
     model_version: str
     sample: bool = False
+    anchor: Optional[str] = Field(None, description="Bitcoin timestamp: 'queued' when sent to OpenTimestamps, 'off' if disabled")
+
+
+class Anchor(BaseModel):
+    status: Literal["queued", "pending", "bitcoin", "failed", "off"] = Field(
+        description="queued = being sent; pending = calendars hold it, Bitcoin block not yet confirmed; bitcoin = anchored in a block")
+    block_height: Optional[int] = Field(None, description="Bitcoin block that proves the forecast existed by then")
+    stamped_at: Optional[str] = None
+    checked_at: Optional[str] = None
+    proof_url: Optional[str] = None
+    error: Optional[str] = None
 
 
 class ForecastOut(ForecastReceipt):
     posted_by: str
     hours: list[ForecastHour]
+    anchor: Optional[Anchor] = None
 
 
 class DayListing(BaseModel):
@@ -109,8 +122,8 @@ def site_or_404(site_id: str) -> dict:
     return s
 
 
-def forecast_or_404(store: QStore, site_id: str, day: date) -> dict:
-    f = store.forecast(site_id, day)
+def forecast_or_404(store: QStore, site_id: str, day: date, version: Optional[int] = None) -> dict:
+    f = store.forecast(site_id, day, version)
     if not f:
         raise ApiError(404, "not_found", what=f"forecast {site_id} {day}")
     return f
@@ -124,11 +137,31 @@ def sites(_: Caller = Depends(need("qenergy.read"))) -> list[Site]:
 
 @router.post("/sites/{site_id}/forecasts/{day}", response_model=ForecastReceipt, status_code=201,
              summary="Pantheon engine posts a day's hourly forecast (new version each time)")
-def post_forecast(site_id: str, day: date, body: ForecastIn, c: Caller = Depends(need("forecast.write")),
+def post_forecast(site_id: str, day: date, body: ForecastIn, tasks: BackgroundTasks, c: Caller = Depends(need("forecast.write")),
                   store: QStore = Depends(get_qstore)) -> ForecastReceipt:
     site_or_404(site_id)
     payload = {"hours": [h.model_dump() for h in body.hours]}
-    return ForecastReceipt(**store.put_forecast(site_id, day, payload, posted_by=c.actor, model_version=body.model_version))
+    rec = store.put_forecast(site_id, day, payload, posted_by=c.actor, model_version=body.model_version)
+    if btc.enabled():
+        tasks.add_task(stamp_forecast, store, rec["id"], rec["sha256"])  # after the reply, so posting is never slowed
+    return ForecastReceipt(**rec, anchor="queued" if btc.enabled() else "off")
+
+
+def stamp_forecast(store: QStore, forecast_id: int, sha256: str) -> None:
+    try:
+        p = btc.stamp(sha256)
+        store.set_anchor(forecast_id, sha256, p.ots, p.status, p.block_height, stamped=True)
+    except Exception as e:
+        store.set_anchor(forecast_id, sha256, None, "failed", error=str(e)[:300])
+
+
+def _anchor_out(site_id: str, day: date, f: dict) -> Optional[Anchor]:
+    a = f.get("anchor")
+    if not a:
+        return None if f["sample"] else Anchor(status="queued" if btc.enabled() else "off")
+    url = f"/v1/qenergy/sites/{site_id}/forecasts/{day}/proof.ots?version={f['version']}" if a["ots"] else None
+    return Anchor(status=a["status"], block_height=a["block_height"], stamped_at=a["stamped_at"], checked_at=a["checked_at"],
+                  proof_url=url, error=a["error"])
 
 
 @router.get("/sites/{site_id}/forecasts", response_model=list[DayListing], summary="Days with a forecast, newest first")
@@ -142,13 +175,15 @@ def get_forecast(site_id: str, day: date, _: Caller = Depends(need("qenergy.read
     site_or_404(site_id)
     f = forecast_or_404(store, site_id, day)
     return ForecastOut(site=site_id, day=day, version=f["version"], sha256=f["sha256"], received_at=f["received_at"],
-                       model_version=f["model_version"], sample=f["sample"], posted_by=f["posted_by"], hours=f["payload"]["hours"])
+                       model_version=f["model_version"], sample=f["sample"], posted_by=f["posted_by"], hours=f["payload"]["hours"],
+                       anchor=_anchor_out(site_id, day, f))
 
 
 @router.get("/sites/{site_id}/forecasts/{day}/canonical", summary="The exact bytes that were fingerprinted, to re-check the SHA-256 independently")
-def forecast_canonical(site_id: str, day: date, _: Caller = Depends(need("qenergy.read")), store: QStore = Depends(get_qstore)) -> Response:
+def forecast_canonical(site_id: str, day: date, version: Optional[int] = Query(None, ge=1, description="Default: latest"),
+                       _: Caller = Depends(need("qenergy.read")), store: QStore = Depends(get_qstore)) -> Response:
     site_or_404(site_id)
-    f = forecast_or_404(store, site_id, day)
+    f = forecast_or_404(store, site_id, day, version)
     return Response(f["canonical"], media_type="application/json", headers={"X-Forecast-SHA256": f["sha256"]})
 
 
@@ -156,6 +191,59 @@ def forecast_canonical(site_id: str, day: date, _: Caller = Depends(need("qenerg
 def forecast_history(site_id: str, day: date, _: Caller = Depends(need("qenergy.read")), store: QStore = Depends(get_qstore)) -> list[dict]:
     site_or_404(site_id)
     return store.history(site_id, day)
+
+
+@router.get("/sites/{site_id}/forecasts/{day}/proof.ots",
+            summary="Bitcoin timestamp proof (OpenTimestamps .ots) for a forecast version; verify it against /canonical")
+def forecast_proof(site_id: str, day: date, version: Optional[int] = Query(None, ge=1, description="Default: latest"),
+                   _: Caller = Depends(need("qenergy.read")), store: QStore = Depends(get_qstore)) -> Response:
+    site_or_404(site_id)
+    f = forecast_or_404(store, site_id, day, version)
+    a = f["anchor"]
+    if not a or not a["ots"]:
+        raise ApiError(404, "not_found", what=f"Bitcoin proof for {site_id} {day} v{f['version']} (not stamped yet)")
+    ots = a["ots"]
+    if a["status"] == "pending" and btc.enabled():  # try to complete it now; harmless if Bitcoin hasn't confirmed yet
+        p = btc.upgrade(ots)
+        store.set_anchor(f["id"], f["sha256"], p.ots, p.status, p.block_height)
+        ots = p.ots
+    name = f"{site_id}-{day}-v{f['version']}.json.ots"
+    return Response(ots, media_type="application/octet-stream", headers={"Content-Disposition": f'attachment; filename="{name}"'})
+
+
+def refresh_loop(every_s: int = 1800) -> None:
+    """Background thread: every 30 minutes, stamp anything missed and complete pending Bitcoin proofs."""
+    import threading
+    import time
+
+    def run():
+        while True:
+            time.sleep(every_s)
+            try:
+                _refresh(get_qstore())
+            except Exception:
+                pass
+    threading.Thread(target=run, daemon=True, name="btc-anchor-refresh").start()
+
+
+@router.post("/anchors/refresh", summary="Stamp any forecast not yet sent and complete pending Bitcoin proofs (run hourly)")
+def refresh_anchors(_: Caller = Depends(need("forecast.write")), store: QStore = Depends(get_qstore)) -> dict:
+    return _refresh(store)
+
+
+def _refresh(store: QStore) -> dict:
+    if not btc.enabled():
+        return {"enabled": False}
+    out = {"enabled": True, "stamped": 0, "anchored": 0, "still_pending": 0, "failed": 0}
+    for r in store.unfinished_anchors():
+        if not r["ots"]:  # never sent, or the calendars were down last time
+            stamp_forecast(store, r["id"], r["sha256"])
+            out["failed" if store.anchor(r["id"])["status"] == "failed" else "stamped"] += 1
+            continue
+        p = btc.upgrade(r["ots"])
+        store.set_anchor(r["id"], r["sha256"], p.ots, p.status, p.block_height)
+        out["anchored" if p.status == "bitcoin" else "still_pending"] += 1
+    return out
 
 
 def _xlsx(wb) -> bytes:

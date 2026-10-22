@@ -63,6 +63,13 @@ internal 2030 revenue build, admin only.
 """
 
 app = FastAPI(title="Pantheon API", version="0.2.0", description=DESCRIPTION)
+
+
+@app.on_event("startup")
+def _start_bitcoin_refresh() -> None:
+    from . import anchor
+    if anchor.enabled() and os.getenv("PANTHEON_OTS_REFRESH", "true").lower() == "true":
+        qenergy.refresh_loop()
 errors.install(app)
 
 # Which websites may call this API from a browser. Set ALLOWED_ORIGINS on the host to a comma-separated list,
