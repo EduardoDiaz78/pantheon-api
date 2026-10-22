@@ -88,20 +88,20 @@ class ChainStore:
                         "forecasts": r["nf"] or 0, "head": head["hash"] if head else None, "last_recorded_at": head["recorded_at"] if head else None})
         return out
 
-    def create_chain(self, chain_id: str, terms: dict) -> dict:
+    def create_chain(self, chain_id: str, terms: dict, at: str | None = None) -> dict:
         with self.lock:
             if self.db.execute("SELECT 1 FROM chains WHERE id=?", (chain_id,)).fetchone():
                 raise ValueError("chain exists")
             self.db.execute("INSERT INTO chains(id, terms, created_at) VALUES (?,?,?)", (chain_id, V.canonical(terms).decode(), _now()))
             self.db.commit()
-        return self.append(chain_id, "terms", terms["start_date"], {"terms": terms})
+        return self.append(chain_id, "terms", terms["start_date"], {"terms": terms}, at=at)
 
-    def append(self, chain_id: str, kind: str, target_day: str, payload: dict, forecast_id: int | None = None) -> dict:
+    def append(self, chain_id: str, kind: str, target_day: str, payload: dict, forecast_id: int | None = None, at: str | None = None) -> dict:
         """Add one entry. Forecasts are salted (sealed); terms and actuals are clear."""
         with self.lock:
             last = self.db.execute("SELECT seq, hash FROM entries WHERE chain=? ORDER BY seq DESC LIMIT 1", (chain_id,)).fetchone()
             seq, prev = (last["seq"] + 1, last["hash"]) if last else (0, None)
-            recorded = _now()
+            recorded = at or _now()  # `at` only for the demo chain
             content = V.canonical({"chain": chain_id, "seq": seq, "kind": kind, "target_day": target_day, "recorded_at": recorded, **payload})
             s = V.salt(V.chain_key(self.month_key(V.month_of(target_day)), chain_id), target_day, seq) if kind == "forecast" else b""
             h = V.entry_hash(s, content, prev)
@@ -135,6 +135,57 @@ class ChainStore:
             self.db.commit()
 
     def unfinished_entries(self) -> list[dict]:
-        rows = self.db.execute("""SELECT * FROM entries WHERE ots_status IS NULL OR ots_status != 'bitcoin' OR rekor_uuid IS NULL
-                                  ORDER BY id""").fetchall()
+        rows = self.db.execute("""SELECT * FROM entries WHERE (ots_status IS NULL OR ots_status != 'bitcoin' OR rekor_uuid IS NULL)
+                                  AND chain NOT LIKE 'demo-%' ORDER BY id""").fetchall()
         return [dict(r) for r in rows]
+
+
+# ---------- demo chain: sample data, simulated clocks, never sent to Rekor or Bitcoin ----------
+DEMO_ID = "demo-atotonilco"
+
+
+def seed_demo_chain(store, sell: list[float]) -> None:
+    import hashlib
+    from datetime import date, datetime, timedelta, timezone
+    if store.chain(DEMO_ID):
+        return
+    mx = timezone(timedelta(hours=-6))
+    iso = lambda d: d.astimezone(timezone.utc).isoformat(timespec="seconds")
+    key, pub = store.signing_key(DEMO_ID)
+    terms = {"chain": DEMO_ID, "demo": True, "subject": {"site": "atotonilco", "central": "01GTT", "unidad": "01GTT-EX1"},
+             "market": "MDA", "quantity": "hourly sales offer, MW", "horizon": "D+1, 24 hours", "cutoff_local": "10:00",
+             "cutoff_days_before": 1, "utc_offset_hours": -6, "start_date": "2026-10-15",
+             "scoring": "MAE of offered vs metered MWh per hour, every day from the start date; missing days count as zero offer",
+             "actuals_source": "CENACE, PML MDA and MTR", "signing_key": pub,
+             "one_chain_rule": "Demo chain: sample data with simulated Rekor and Bitcoin times. Nothing here is logged publicly."}
+    log = []
+    t0 = datetime(2026, 10, 13, 12, 4, tzinfo=mx)
+    log.append((store.create_chain(DEMO_ID, terms, at=iso(t0)), t0))
+    def fc(k, d, rev=False):
+        prev = d - timedelta(days=1)
+        ins = [{"source": src, "as_of": a, "retrieved_at": f"{prev}T06:4{j}:00-06:00", "sha256": hashlib.sha256(f"{src}{d}".encode()).hexdigest()}
+               for j, (src, a) in enumerate([("CENACE PML MDA, nodo 01GTT", f"{prev - timedelta(days=1)}T17:00:00-06:00"),
+                                             ("GFS 0.25 deg, run 00Z", f"{prev}T00:00:00+00:00"),
+                                             ("Plant SCADA, Atotonilco", f"{prev}T06:30:00-06:00")])]
+        commit = ("41be07d" if rev else "3f9c2a1") + hashlib.sha1(str(rev).encode()).hexdigest()[7:]
+        return {"site": "atotonilco", "model_version": "pantheon@" + commit[:7], "model_commit": commit,
+                "model_repo": "github.com/genau-ai/pantheon-engine", "inputs": ins,
+                "hours": [{"hour": h + 1, "sell_mw": round(sell[h] * (1 + 0.03 * ((k * 7 + h) % 5 - 2)) * (1.08 if rev else 1), 4),
+                           "sell_price": 0, "buy_fixed_mw": 0, "buy_segments": []} for h in range(24)]}
+    for k in range(8):
+        d = date(2026, 10, 15) + timedelta(days=k)
+        t = datetime(d.year, d.month, d.day, 8, 2, tzinfo=mx) - timedelta(days=1)
+        log.append((store.append(DEMO_ID, "forecast", d.isoformat(), fc(k, d), at=iso(t)), t))
+        if d == date(2026, 10, 20):  # a revision after the 10:00 deadline: kept, marked late, never counted
+            t = datetime(2026, 10, 19, 11, 47, tzinfo=mx)
+            log.append((store.append(DEMO_ID, "forecast", d.isoformat(), fc(k, d, rev=True), at=iso(t)), t))
+        pd = d - timedelta(days=2)
+        if pd >= date(2026, 10, 15):
+            t = datetime(d.year, d.month, d.day, 18, 31, tzinfo=mx) - timedelta(days=1)
+            prices = [{"hour": h + 1, "pml_mda": 1450 + 900 * (18 <= h <= 21) + 37 * ((h * 7 + k) % 5), "pml_mtr": 1500 + 41 * ((h * 3 + k) % 7)} for h in range(24)]
+            log.append((store.append(DEMO_ID, "actuals", pd.isoformat(), {"site": "atotonilco", "source": "CENACE", "vintage": f"MDA {pd} v1",
+                                                                      "retrieved_at": t.isoformat(), "prices": prices}, at=iso(t)), t))
+    for e, t in log:  # simulated clocks: Rekor 2 s after recording; Bitcoin confirmed for entries older than 19 Oct
+        btc = t < datetime(2026, 10, 19, tzinfo=mx)
+        store.set_entry(e["id"], rekor_uuid="demo", rekor_index=None, rekor_time=int(t.timestamp()) + 2,
+                        ots_status="bitcoin" if btc else "pending", block_height=None)

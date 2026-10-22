@@ -104,6 +104,8 @@ class QStore(ChainStore):
 
     # ---------- sample data so the page works before the engine is connected ----------
     def _seed(self) -> None:
+        from .vispera_store import seed_demo_chain
+        seed_demo_chain(self, SAMPLE_SELL)
         start = date(2026, 10, 12)
         for k in range(7):
             d = start + timedelta(days=k)

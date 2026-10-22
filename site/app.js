@@ -1269,6 +1269,8 @@
     r_ok: "Intact", r_bad: "Problems found", r_entries: "{n} entries checked", r_hashes: "{n} hashes recomputed from content and salts",
     r_cut: "{a} of {b} forecasts logged before their deadline", r_links: "Numbering and links: no gaps, no breaks",
     r_model: "{a} of {b} forecasts name the git commit that ran and their inputs, all before the deadline",
+    v_demo: "Demo chain. Sample forecasts with simulated Rekor and Bitcoin times: nothing here is logged publicly. The live chain appears here once Genau starts it.",
+    v_sim: "simulated", v_chains: "Chain",
     t_entry0: "Entry 0 fingerprint", t_entry0_d: "record this when you sign: any other chain is not ours",
     v_rekor_note: "Your browser can't reach Rekor directly. To compare every fingerprint with Rekor's copy and list everything signed with this chain's key, run the checker below: it does both by default."
   });
@@ -1292,6 +1294,8 @@
     r_ok: "Íntegra", r_bad: "Se encontraron problemas", r_entries: "{n} entradas verificadas", r_hashes: "{n} hashes recalculados a partir del contenido y las sales",
     r_cut: "{a} de {b} pronósticos registrados antes de su límite", r_links: "Numeración y enlaces: sin huecos ni rupturas",
     r_model: "{a} de {b} pronósticos indican el commit de git que corrió y sus insumos, todo antes del límite",
+    v_demo: "Cadena de demostración. Pronósticos de ejemplo con horas de Rekor y Bitcoin simuladas: nada aquí está registrado públicamente. La cadena real aparecerá aquí cuando Genau la inicie.",
+    v_sim: "simulado", v_chains: "Cadena",
     t_entry0: "Huella de la entrada 0", t_entry0_d: "regístrela al firmar: cualquier otra cadena no es la nuestra",
     v_rekor_note: "Su navegador no puede consultar Rekor directamente. Para comparar cada huella con la copia de Rekor y listar todo lo firmado con la llave de esta cadena, ejecute el verificador de abajo: hace ambas cosas por defecto."
   });
@@ -1390,7 +1394,7 @@
       row("t_cutoff", esc(fillT("t_cutoff_v", { t: tm.cutoff_local, d: tm.cutoff_days_before }))) + row("t_start", '<span class="mono">' + esc(tm.start_date) + "</span>") +
       row("t_scoring", esc(tm.scoring)) + row("t_actuals", esc(tm.actuals_source)) +
       row("t_entry0", '<span class="mono" style="overflow-wrap:anywhere">' + esc(e0.hash) + '</span><br><span class="muted">' + esc(t("t_entry0_d")) + "</span>") +
-      row("t_recorded", esc(dateTime(e0.recorded_at)) + (e0.rekor.log_index != null ? ' · Rekor <a href="' + e0.rekor.url + '" target="_blank" rel="noopener" class="mono">#' + e0.rekor.log_index + "</a>" : "")) + "</div></section>";
+      row("t_recorded", esc(dateTime(e0.recorded_at)) + (e0.rekor.simulated ? ' <span class="muted">(' + esc(t("v_sim")) + ")</span>" : "") + (e0.rekor.log_index != null ? ' · Rekor <a href="' + e0.rekor.url + '" target="_blank" rel="noopener" class="mono">#' + e0.rekor.log_index + "</a>" : "")) + "</div></section>";
     var kpis = '<div class="row" style="gap:12px">' +
       kpi(t("v_k_fc"), '<span style="color:var(--charge)">' + sm.forecasts + "</span>", esc(fillT("v_k_fc_c", { d: sm.forecast_days }))) +
       kpi(t("v_k_cut"), '<span style="color:var(--good)">' + sm.rekor_before_cutoff + '</span><span class="unit"> / ' + sm.forecasts + "</span>", esc(t("v_k_cut_c"))) +
@@ -1407,8 +1411,8 @@
     var rows = es.slice().reverse().map(function (e) {
       var cut = e.kind !== "forecast" ? '<span class="muted">—</span>' : e.rekor_before_cutoff === true ? '<span style="color:var(--good)">✓ ' + esc(t("v_before")) + "</span>" : e.rekor_before_cutoff === false ? '<span style="color:var(--critical)">' + esc(t("v_late")) + "</span>" : '<span class="muted">' + esc(t("v_wait")) + "</span>";
       return '<tr><td class="mono">' + e.seq + '</td><td><span class="mono small" style="padding:2px 8px;border-radius:999px;border:1px solid ' + KCOL[e.kind] + ";color:" + KCOL[e.kind] + '">' + esc(t("k_" + e.kind)) + '</span></td><td class="mono small">' + esc(e.target_day) +
-        '</td><td class="mono small" title="' + e.hash + '">' + short(e.hash) + "…</td><td class=\"small\">" + (e.rekor.integrated_time ? esc(dateTime(e.rekor.integrated_time)) + ' <a class="mono" href="' + e.rekor.url + '" target="_blank" rel="noopener">#' + e.rekor.log_index + "</a>" : '<span class="muted">—</span>') +
-        "</td><td class=\"small\">" + cut + '</td><td class="small">' + (e.bitcoin.block_height ? '<a class="mono" href="https://blockstream.info/block-height/' + e.bitcoin.block_height + '" target="_blank" rel="noopener">#' + Number(e.bitcoin.block_height).toLocaleString(loc()) + "</a>" : '<span class="muted">' + esc(e.bitcoin.status) + "</span>") +
+        '</td><td class="mono small" title="' + e.hash + '">' + short(e.hash) + "…</td><td class=\"small\">" + (e.rekor.integrated_time ? esc(dateTime(e.rekor.integrated_time)) + (e.rekor.url ? ' <a class="mono" href="' + e.rekor.url + '" target="_blank" rel="noopener">#' + e.rekor.log_index + "</a>" : (e.rekor.simulated ? ' <span class="muted small">(' + esc(t("v_sim")) + ")</span>" : "")) : '<span class="muted">—</span>') +
+        "</td><td class=\"small\">" + cut + '</td><td class="small">' + (e.bitcoin.block_height ? '<a class="mono" href="https://blockstream.info/block-height/' + e.bitcoin.block_height + '" target="_blank" rel="noopener">#' + Number(e.bitcoin.block_height).toLocaleString(loc()) + "</a>" : '<span class="muted">' + esc(e.bitcoin.status) + (e.bitcoin.simulated ? " (" + esc(t("v_sim")) + ")" : "") + "</span>") +
         "</td><td>" + (e.bitcoin.proof_url ? '<button class="btn" type="button" data-vots="' + e.seq + '">.ots</button>' : "") + "</td></tr>";
     }).join("");
     var table = '<section class="card"><h2>' + esc(t("v_entries")) + '</h2><div class="tablewrap"><table class="tstable"><thead><tr>' + t("v_cols").map(function (x) { return "<th>" + esc(x) + "</th>"; }).join("") + "</tr></thead><tbody>" + rows + "</tbody></table></div></section>";
@@ -1422,8 +1426,12 @@
       '.varrow{align-self:center;color:var(--ink-muted)}.vgap{align-self:center;padding:0 6px}' +
       '@media (max-width:720px){.tstable thead{display:none}.tstable,.tstable tbody{display:block;min-width:0}.tstable tr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:12px 0;border-bottom:1px solid var(--line-subtle)}.tstable td{display:block;padding:0;border:0}}</style>' +
       '<div class="head"><div><div class="eyebrow">' + esc(t("v_eyebrow")) + '</div><h1 class="title">' + esc(fillT("v_title", { name: name })) + '</h1><p class="muted" style="margin:4px 0 0;max-width:820px">' + esc(t("v_lede")) + "</p></div></div>" +
+      (ix.chains.length > 1 ? '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="small muted">' + esc(t("v_chains")) + "</span>" + ix.chains.map(function (c) {
+        return '<button class="btn' + (c.id === ch.chain ? " primary" : "") + '" type="button" data-vchain="' + esc(c.id) + '">' + esc(c.id) + "</button>"; }).join("") + "</div>" : "") +
+      (tm.demo ? '<div class="banner" style="background:var(--peak-tint);border:1px solid var(--peak)"><span>' + esc(t("v_demo")) + "</span></div>" : "") +
       kpis + terms + strip + checks + table, 0);
     var root = document.getElementById("app");
+    root.querySelectorAll("[data-vchain]").forEach(function (b) { b.addEventListener("click", function () { vsel.chain = b.dataset.vchain; route(); }); });
     root.querySelector("[data-vpub]").addEventListener("click", function () {
       verifyChain(ch, "public").then(function (r) { showResult(root.querySelector("[data-vpubres]"), r, "public"); });
     });

@@ -107,14 +107,18 @@ def _cutoff_ok(e: dict, terms: dict) -> dict:
 
 
 def public_entry(e: dict, terms: dict) -> dict:
+    if terms.get("demo"):  # simulated clocks: no proof file, no public log link
+        e = {**e, "ots": None}
     return {"seq": e["seq"], "kind": e["kind"], "target_day": e["target_day"], "hash": e["hash"], "prev": e["prev"],
             "recorded_at": e["recorded_at"],
             "content": e["content"] if e["kind"] != "forecast" else None,
             "bitcoin": {"status": e["ots_status"] or ("queued" if btc.enabled() else "off"), "block_height": e["block_height"],
+                        "simulated": bool(terms.get("demo")),
                         "proof_url": f"/v1/vispera/chains/{e['chain']}/entries/{e['seq']}/proof.ots" if e["ots"] else None},
             "rekor": {"log_index": e["rekor_index"], "uuid": e["rekor_uuid"],
                       "integrated_time": datetime.fromtimestamp(e["rekor_time"], timezone.utc).isoformat() if e["rekor_time"] else None,
-                      "url": f"https://search.sigstore.dev/?logIndex={e['rekor_index']}" if e["rekor_index"] is not None else None},
+                      "url": f"https://search.sigstore.dev/?logIndex={e['rekor_index']}" if e["rekor_index"] is not None else None,
+                      "simulated": bool(terms.get("demo"))},
             **_cutoff_ok(e, terms)}
 
 
