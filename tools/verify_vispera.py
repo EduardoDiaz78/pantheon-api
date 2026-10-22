@@ -5,7 +5,8 @@ Anyone (public chain, no forecasts):
     python verify_vispera.py public  chain.json            # from GET /v1/vispera/chains/{id}
 Client under NDA (disclosure with forecasts and chain keys):
     python verify_vispera.py client  disclosure.json       # from GET /v1/vispera/chains/{id}/disclosure
-Add --rekor to fetch each entry's time from Sigstore Rekor itself instead of reading it from the file.
+Add --rekor to fetch each entry's time and hash from Sigstore Rekor itself instead of reading them from the file:
+then a disclosure Genau rebuilt after the fact fails, because Rekor still holds the original hashes.
 
 What it checks
   public  every entry is numbered 0, 1, 2… with no gap; each entry points at the previous hash;
@@ -37,10 +38,13 @@ def cutoff(target_day: str, terms: dict) -> datetime:
     return datetime(d.year, d.month, d.day, hh, mm, tzinfo=tz).astimezone(timezone.utc)
 
 
-def rekor_time(uuid: str) -> datetime | None:
+def rekor_record(uuid: str) -> tuple[datetime, str]:
+    """Rekor's own time and the hash it holds for this entry, fetched from rekor.sigstore.dev, not from Genau."""
+    import base64
     with urllib.request.urlopen(f"https://rekor.sigstore.dev/api/v1/log/entries/{uuid}", timeout=20) as r:
         e = next(iter(json.loads(r.read()).values()))
-    return datetime.fromtimestamp(e["integratedTime"], timezone.utc)
+    body = json.loads(base64.b64decode(e["body"]))
+    return datetime.fromtimestamp(e["integratedTime"], timezone.utc), body["spec"]["data"]["hash"]["value"]
 
 
 def check(doc: dict, mode: str, online: bool) -> int:
@@ -68,12 +72,14 @@ def check(doc: dict, mode: str, online: bool) -> int:
             pre = s + e["content"].encode() + (bytes.fromhex(prev) if prev else ZERO)
             if hashlib.sha256(pre).hexdigest() != e["hash"]:
                 problems.append(f"#{i}: hash does not match its content")
+        t = None
+        if online and e["rekor"].get("uuid"):
+            t, logged = rekor_record(e["rekor"]["uuid"])
+            if logged != e["hash"]:
+                problems.append(f"#{i}: Rekor holds a different hash for this entry")
+        elif e["rekor"].get("integrated_time"):
+            t = datetime.fromisoformat(e["rekor"]["integrated_time"])
         if e["kind"] == "forecast":
-            t = None
-            if online and e["rekor"].get("uuid"):
-                t = rekor_time(e["rekor"]["uuid"])
-            elif e["rekor"].get("integrated_time"):
-                t = datetime.fromisoformat(e["rekor"]["integrated_time"])
             if t is None:
                 unlogged.append(e["seq"])
             elif t >= cutoff(e["target_day"], terms):
