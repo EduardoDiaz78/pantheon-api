@@ -50,9 +50,13 @@ class QStore(ChainStore):
             sample = os.getenv("PANTHEON_QENERGY_SAMPLE", "true").lower() == "true"
         if sample and not self.db.execute("SELECT 1 FROM forecasts LIMIT 1").fetchone():
             self._seed()
-        if sample:  # also on a database that already has data (idempotent)
-            from .vispera_store import seed_demo_chain
-            seed_demo_chain(self, SAMPLE_SELL)
+        if sample:  # also on a database that already has data (idempotent); never allowed to break the store
+            try:
+                from .vispera_store import seed_demo_chain
+                seed_demo_chain(self, SAMPLE_SELL)
+            except Exception as e:  # pragma: no cover
+                import logging
+                logging.getLogger("pantheon").exception("demo chain not seeded: %s", e)
 
     # ---------- forecasts ----------
     def put_forecast(self, site: str, day: date, payload: dict, posted_by: str, model_version: str, sample: bool = False) -> dict:
