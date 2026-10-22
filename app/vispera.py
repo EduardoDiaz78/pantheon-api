@@ -96,19 +96,16 @@ def rekor_enabled() -> bool:
     return os.getenv("PANTHEON_REKOR", "true").lower() == "true"
 
 
-def load_or_make_key(stored_pem: str | None) -> tuple[object, str, bool]:
-    """Signing key for Rekor entries. PANTHEON_REKOR_KEY (PEM) wins; else the stored one; else a new one.
-    Returns (private_key, public_pem, is_new)."""
+def chain_signing_key(seed: bytes, chain_id: str):
+    """One P-256 signing key per chain, derived from Genau's seed: same seed, same key, after any restart.
+    Rekor indexes entries by public key, so everything ever logged for a chain can be listed by anyone."""
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric import ec
-    pem = os.getenv("PANTHEON_REKOR_KEY") or stored_pem
-    new = False
-    if pem:
-        key = serialization.load_pem_private_key(pem.encode(), password=None)
-    else:
-        key, new = ec.generate_private_key(ec.SECP256R1()), True
+    n = 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551  # order of P-256
+    d = int.from_bytes(hmac.new(seed, f"rekor-key|{chain_id}".encode(), hashlib.sha512).digest(), "big") % (n - 1) + 1
+    key = ec.derive_private_key(d, ec.SECP256R1())
     pub = key.public_key().public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo).decode()
-    return key, pub, new
+    return key, pub
 
 
 def private_pem(key) -> str:

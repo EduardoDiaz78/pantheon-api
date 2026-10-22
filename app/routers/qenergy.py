@@ -10,7 +10,7 @@ from __future__ import annotations
 import csv
 import io
 import os
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Literal, Optional
 
@@ -46,9 +46,21 @@ class ForecastHour(BaseModel):
     buy_segments: list[Segment] = Field(default_factory=list, max_length=3, description="Up to 3 price-sensitive purchase blocks")
 
 
+class ForecastInput(BaseModel):
+    source: str = Field(max_length=120, description="e.g. 'CENACE PML MDA', 'GFS 0.25 run 00Z', 'plant SCADA'")
+    as_of: datetime = Field(description="Latest moment the data covers / was published, with time zone")
+    retrieved_at: datetime = Field(description="When the engine downloaded it, with time zone")
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$", description="SHA-256 of the input file exactly as used")
+
+
 class ForecastIn(BaseModel):
     hours: list[ForecastHour] = Field(min_length=24, max_length=25)
     model_version: str = Field("unknown", max_length=80)
+    model_commit: Optional[str] = Field(None, pattern=r"^[0-9a-f]{40}$",
+                                        description="Git commit (SHA-1) of the code that ran. Required once the plant has a Víspera chain")
+    model_repo: Optional[str] = Field(None, max_length=200, description="Company repository holding that commit")
+    inputs: list[ForecastInput] = Field(default_factory=list, max_length=50,
+                                        description="Every input the model used. Required (at least one) once the plant has a Víspera chain")
 
     @field_validator("hours")
     @classmethod
@@ -132,10 +144,27 @@ def sites(_: Caller = Depends(need("qenergy.read"))) -> list[Site]:
 def post_forecast(site_id: str, day: date, body: ForecastIn, tasks: BackgroundTasks, c: Caller = Depends(need("forecast.write")),
                   store: QStore = Depends(get_qstore)) -> ForecastReceipt:
     site_or_404(site_id)
+    ch = store.chain(site_id)
+    chained = bool(ch) and day.isoformat() >= ch["terms"]["start_date"]
+    if chained:
+        problems = []
+        if not body.model_commit or not body.model_repo:
+            problems.append({"field": "model_commit", "message": "the git commit and repository of the code that ran are required on a Víspera chain"})
+        if not body.inputs:
+            problems.append({"field": "inputs", "message": "list every input (source, as_of, retrieved_at, sha256) on a Víspera chain"})
+        now = datetime.now(timezone.utc)
+        for i, x in enumerate(body.inputs):
+            if x.as_of.tzinfo is None or x.retrieved_at.tzinfo is None:
+                problems.append({"field": f"inputs[{i}]", "message": "as_of and retrieved_at need a time zone"})
+            elif x.as_of > x.retrieved_at or x.retrieved_at > now:
+                problems.append({"field": f"inputs[{i}]", "message": "as_of must be before retrieved_at, and both in the past"})
+        if problems:
+            raise ApiError(422, "validation_error", details=problems)
     payload = {"hours": [h.model_dump() for h in body.hours]}
     rec = store.put_forecast(site_id, day, payload, posted_by=c.actor, model_version=body.model_version)
-    rec["chain"] = to_chain(store, tasks, site_id, day, "forecast",
-                            {"site": site_id, "model_version": body.model_version, "record_sha256": rec["sha256"], **payload}, rec["id"])
+    sealed = {"site": site_id, "model_version": body.model_version, "model_commit": body.model_commit, "model_repo": body.model_repo,
+              "inputs": [x.model_dump(mode="json") for x in body.inputs], "record_sha256": rec["sha256"], **payload}
+    rec["chain"] = to_chain(store, tasks, site_id, day, "forecast", sealed, rec["id"])
     return ForecastReceipt(**rec)
 
 

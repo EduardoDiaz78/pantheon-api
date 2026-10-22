@@ -1267,7 +1267,10 @@
     v_check_cli: "Open and verify every forecast", v_check_cli_d: "Client under NDA: downloads the whole chain from entry 0 with every forecast and the chain keys, derives each salt and recomputes every hash in your browser.",
     v_dl: "Download disclosure (.json)", v_cmd: "Or offline, with only Python's standard library:",
     r_ok: "Intact", r_bad: "Problems found", r_entries: "{n} entries checked", r_hashes: "{n} hashes recomputed from content and salts",
-    r_cut: "{a} of {b} forecasts logged before their deadline", r_links: "Numbering and links: no gaps, no breaks"
+    r_cut: "{a} of {b} forecasts logged before their deadline", r_links: "Numbering and links: no gaps, no breaks",
+    r_model: "{a} of {b} forecasts name the git commit that ran and their inputs, all before the deadline",
+    t_entry0: "Entry 0 fingerprint", t_entry0_d: "record this when you sign: any other chain is not ours",
+    v_rekor_note: "Your browser can't reach Rekor directly. To compare every fingerprint with Rekor's copy and list everything signed with this chain's key, run the checker below: it does both by default."
   });
   Object.assign(T.es, {
     nav_ts: "Víspera", role_client: "Cliente con NDA", role_client_d: "Verifica el registro de pronósticos de Pantheon.",
@@ -1287,7 +1290,10 @@
     v_check_cli: "Abrir y verificar cada pronóstico", v_check_cli_d: "Cliente con NDA: descarga la cadena completa desde la entrada 0 con cada pronóstico y las llaves de cadena, deriva cada sal y recalcula cada hash en su navegador.",
     v_dl: "Descargar divulgación (.json)", v_cmd: "O sin conexión, solo con la biblioteca estándar de Python:",
     r_ok: "Íntegra", r_bad: "Se encontraron problemas", r_entries: "{n} entradas verificadas", r_hashes: "{n} hashes recalculados a partir del contenido y las sales",
-    r_cut: "{a} de {b} pronósticos registrados antes de su límite", r_links: "Numeración y enlaces: sin huecos ni rupturas"
+    r_cut: "{a} de {b} pronósticos registrados antes de su límite", r_links: "Numeración y enlaces: sin huecos ni rupturas",
+    r_model: "{a} de {b} pronósticos indican el commit de git que corrió y sus insumos, todo antes del límite",
+    t_entry0: "Huella de la entrada 0", t_entry0_d: "regístrela al firmar: cualquier otra cadena no es la nuestra",
+    v_rekor_note: "Su navegador no puede consultar Rekor directamente. Para comparar cada huella con la copia de Rekor y listar todo lo firmado con la llave de esta cadena, ejecute el verificador de abajo: hace ambas cosas por defecto."
   });
 
   var KCOL = { terms: "var(--neutral-mark)", forecast: "var(--charge)", actuals: "var(--sun)" };
@@ -1308,7 +1314,7 @@
   }
   // The same checks as tools/verify_vispera.py. mode "public" (hashes only) or "client" (disclosure with chain keys).
   function verifyChain(doc, mode) {
-    var probs = [], prev = null, late = 0, nf = 0, i = 0, es = doc.entries;
+    var probs = [], prev = null, late = 0, nf = 0, declared = 0, i = 0, es = doc.entries;
     function step() {
       if (i >= es.length) return Promise.resolve();
       var e = es[i], k = i;
@@ -1320,6 +1326,13 @@
       if (mode !== "client") return done();
       var body = JSON.parse(e.content);
       if (body.seq !== e.seq || body.kind !== e.kind || body.target_day !== e.target_day) probs.push("#" + k + ": label differs from what was hashed");
+      if (e.kind === "forecast") {
+        var c = cutoffOf(e.target_day, doc.terms), ins = body.inputs || [], okc = /^[0-9a-f]{40}$/.test(body.model_commit || "") && !!body.model_repo;
+        var oki = ins.length && ins.every(function (x) { return /^[0-9a-f]{64}$/.test(x.sha256 || "") && Date.parse(x.as_of) < c && Date.parse(x.retrieved_at) < c; });
+        if (!okc) probs.push("#" + k + ": no git commit for the code that ran");
+        if (!oki) probs.push("#" + k + ": inputs missing or dated after the deadline");
+        if (okc && oki) declared++;
+      }
       var saltP = Promise.resolve(new Uint8Array(0));
       if (e.kind === "forecast") {
         var ck = doc.chain_keys[e.target_day.slice(0, 7)];
@@ -1331,12 +1344,12 @@
         return crypto.subtle.digest("SHA-256", pre);
       }).then(function (h) { if (hexOf(h) !== e.hash) probs.push("#" + k + ": hash does not match its content"); return done(); });
     }
-    return step().then(function () { return { ok: !probs.length, problems: probs, n: es.length, nf: nf, before: nf - late }; });
+    return step().then(function () { return { ok: !probs.length, problems: probs, n: es.length, nf: nf, before: nf - late, declared: declared }; });
   }
   function showResult(el, r, mode) {
     el.innerHTML = '<div class="banner ' + (r.ok ? "done" : "missed") + '" style="flex-direction:column;align-items:flex-start;gap:4px"><strong>' + (r.ok ? "✓ " : "✗ ") + esc(t(r.ok ? "r_ok" : "r_bad")) + "</strong>" +
       '<span class="small">' + esc(fillT("r_entries", { n: r.n })) + " · " + esc(t("r_links")) + "</span>" +
-      (mode === "client" ? '<span class="small">' + esc(fillT("r_hashes", { n: r.n })) + "</span>" : "") +
+      (mode === "client" ? '<span class="small">' + esc(fillT("r_hashes", { n: r.n })) + "</span>" + '<span class="small">' + esc(fillT("r_model", { a: r.declared, b: r.nf })) + "</span>" : "") +
       '<span class="small">' + esc(fillT("r_cut", { a: r.before, b: r.nf })) + "</span>" +
       r.problems.map(function (p) { return '<span class="small mono" style="color:var(--critical)">' + esc(p) + "</span>"; }).join("") + "</div>";
   }
@@ -1376,6 +1389,7 @@
       row("t_quantity", esc(tm.quantity)) + row("t_market", esc(tm.market)) + row("t_horizon", esc(tm.horizon)) +
       row("t_cutoff", esc(fillT("t_cutoff_v", { t: tm.cutoff_local, d: tm.cutoff_days_before }))) + row("t_start", '<span class="mono">' + esc(tm.start_date) + "</span>") +
       row("t_scoring", esc(tm.scoring)) + row("t_actuals", esc(tm.actuals_source)) +
+      row("t_entry0", '<span class="mono" style="overflow-wrap:anywhere">' + esc(e0.hash) + '</span><br><span class="muted">' + esc(t("t_entry0_d")) + "</span>") +
       row("t_recorded", esc(dateTime(e0.recorded_at)) + (e0.rekor.log_index != null ? ' · Rekor <a href="' + e0.rekor.url + '" target="_blank" rel="noopener" class="mono">#' + e0.rekor.log_index + "</a>" : "")) + "</div></section>";
     var kpis = '<div class="row" style="gap:12px">' +
       kpi(t("v_k_fc"), '<span style="color:var(--charge)">' + sm.forecasts + "</span>", esc(fillT("v_k_fc_c", { d: sm.forecast_days }))) +
@@ -1401,7 +1415,7 @@
     var checks = '<section class="card"><h2>' + esc(t("v_check")) + '</h2><div class="row" style="align-items:stretch;gap:12px">' +
       '<div class="card" style="background:var(--bg-200)"><strong>' + esc(t("v_check_pub")) + '</strong><p class="small muted" style="margin:0">' + esc(t("v_check_pub_d")) + '</p><button class="btn primary" type="button" data-vpub>' + esc(t("v_check_pub")) + '</button><div data-vpubres></div></div>' +
       (can("vispera.disclose") ? '<div class="card" style="background:var(--bg-200)"><strong>' + esc(t("v_check_cli")) + '</strong><p class="small muted" style="margin:0">' + esc(t("v_check_cli_d")) + '</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" data-vcli>' + esc(t("v_check_cli")) + '</button><button class="btn" type="button" data-vdl>' + esc(t("v_dl")) + '</button></div><div data-vclires></div></div>' : "") +
-      '</div><p class="small muted" style="margin:0">' + esc(t("v_cmd")) + '</p><pre class="mono small" style="margin:0;padding:12px;background:var(--bg-300);border-radius:8px;overflow-x:auto">python verify_vispera.py public chain.json\npython verify_vispera.py client disclosure.json --rekor</pre></section>';
+      '</div><p class="small muted" style="margin:0">' + esc(t("v_rekor_note")) + " " + esc(t("v_cmd")) + '</p><pre class="mono small" style="margin:0;padding:12px;background:var(--bg-300);border-radius:8px;overflow-x:auto">python verify_vispera.py public chain.json --entry0 ' + esc(e0.hash.slice(0, 12)) + '…\npython verify_vispera.py client disclosure.json --entry0 ' + esc(e0.hash.slice(0, 12)) + '…</pre></section>';
     frame("timestamps",
       '<style>.vstrip{display:flex;align-items:stretch;gap:6px;overflow-x:auto;padding:4px 0}.vblock{flex:none;min-width:104px;padding:10px;border-radius:10px;display:flex;flex-direction:column;gap:2px}' +
       '.vblock.terms{background:var(--bg-300);border:1px solid var(--neutral-mark)}.vblock.forecast{background:#0E2236;border:1px solid var(--charge)}.vblock.actuals{background:transparent;border:1px dashed var(--sun)}' +

@@ -40,7 +40,7 @@ def anchor_entry(store: QStore, entry_id: int, calendar_factory=None, rekor_post
             store.set_entry(entry_id, ots_status="failed", ots_error=str(x)[:300])
     if V.rekor_enabled() and not e["rekor_uuid"]:
         try:
-            key, pub = store.signing_key()
+            key, pub = store.signing_key(e["chain"])
             r = V.rekor_submit(key, pub, store.preimage_of(e), e["hash"], post=rekor_post or _rekor_override)
             store.set_entry(entry_id, rekor_uuid=r["uuid"], rekor_index=r["log_index"], rekor_time=r["integrated_time"], rekor_error=None)
         except Exception as x:
@@ -128,7 +128,8 @@ def chain_or_404(store: QStore, chain_id: str) -> dict:
 # ---------- public ----------
 @router.get("/index", summary="Every chain: terms, length, head hash (public, no sign-in)")
 def index(store: QStore = Depends(get_qstore)) -> dict:
-    return {"chains": store.chains(), "public_key_url": "/v1/vispera/public-key",
+    return {"chains": [{**c, "entry0": (store.entries(c["id"]) or [{}])[0].get("hash"),
+                        "public_key_url": f"/v1/vispera/chains/{c['id']}/public-key"} for c in store.chains()],
             "anchors": {"bitcoin": btc.enabled(), "rekor": V.rekor_enabled()},
             "construction": "s_i = SHA-256(salt_i || content_i || s_(i-1)); salt empty for terms and actuals; s_(-1) = 32 zero bytes"}
 
@@ -140,6 +141,7 @@ def public_chain(chain_id: str, store: QStore = Depends(get_qstore)) -> dict:
     rows = [public_entry(e, c["terms"]) for e in es]
     f = [r for r in rows if r["kind"] == "forecast"]
     return {"chain": chain_id, "terms": c["terms"], "length": len(rows), "head": rows[-1]["hash"] if rows else None,
+            "entry0": rows[0]["hash"] if rows else None,
             "summary": {"forecasts": len(f), "actuals": sum(r["kind"] == "actuals" for r in rows),
                         "forecast_days": len({r["target_day"] for r in f}),
                         "bitcoin": sum(r["bitcoin"]["status"] == "bitcoin" for r in rows),
@@ -164,9 +166,10 @@ def entry_proof(chain_id: str, seq: int, store: QStore = Depends(get_qstore)) ->
                     headers={"Content-Disposition": f'attachment; filename="{chain_id}-{seq}.ots"'})
 
 
-@router.get("/public-key", response_class=PlainTextResponse, summary="Pantheon's public key for its Rekor entries (public)")
-def public_key(store: QStore = Depends(get_qstore)) -> str:
-    return store.signing_key()[1]
+@router.get("/chains/{chain_id}/public-key", response_class=PlainTextResponse,
+            summary="The chain's Rekor signing key (public). Rekor lists every entry signed with it")
+def public_key(chain_id: str, store: QStore = Depends(get_qstore)) -> str:
+    return chain_or_404(store, chain_id)["terms"]["signing_key"]
 
 
 # ---------- Genau ----------
@@ -175,13 +178,18 @@ def create_chain(body: TermsIn, tasks: BackgroundTasks, c: Caller = Depends(need
                  store: QStore = Depends(get_qstore)) -> dict:
     if body.start_date <= datetime.now(timezone.utc).date():
         raise ApiError(422, "validation_error", details=[{"field": "start_date", "message": "must be after today: the terms come first"}])
-    if not os.getenv("PANTHEON_REKOR_KEY") and os.getenv("PANTHEON_VISPERA_ALLOW_EPHEMERAL", "false").lower() != "true":
-        raise ApiError(409, "conflict", details=[{"message": "Set PANTHEON_REKOR_KEY and persistent storage first: "
+    if not os.getenv("PANTHEON_REKOR_SEED") and os.getenv("PANTHEON_VISPERA_ALLOW_EPHEMERAL", "false").lower() != "true":
+        raise ApiError(409, "conflict", details=[{"message": "Set PANTHEON_REKOR_SEED and persistent storage first: "
                                                   "a key or database lost on restart would orphan the chain."}])
-    key, pub = store.signing_key()
-    import hashlib
+    if store.chain(body.chain_id):
+        raise ApiError(409, "conflict", details=[{"message": f"chain {body.chain_id} exists"}])
+    key, pub = store.signing_key(body.chain_id)
     terms = {**body.model_dump(mode="json", exclude={"chain_id"}), "chain": body.chain_id,
-             "signing_key_sha256": hashlib.sha256(pub.encode()).hexdigest(),
+             "signing_key": pub,
+             "one_chain_rule": "This is the only chain for this subject. Every entry is signed with signing_key and logged in Rekor; "
+                               "any Rekor entry signed with it that is not in this chain voids Genau's claims for the period.",
+             "forecast_must_include": ["model_commit (git SHA-1 of the code that ran)", "model_repo",
+                                       "inputs: source, as_of, retrieved_at, sha256 of each input file"],
              "anchors": ["bitcoin-opentimestamps", "sigstore-rekor"],
              "construction": "s_i = SHA-256(salt_i || content_i || s_(i-1)); chain key = HMAC-SHA256(month key, 'chain|'+chain); "
                              "salt = HMAC-SHA256(chain key, 'salt|'+target_day+'|'+seq); forecasts salted, terms and actuals clear",
@@ -203,7 +211,7 @@ def disclosure(chain_id: str, through: Optional[date] = Query(None, description=
         es = [e for e in es if e["recorded_at"][:10] <= through.isoformat()]
     months = sorted({V.month_of(e["target_day"]) for e in es if e["kind"] == "forecast"})
     keys = {m: V.chain_key(store.month_key(m), chain_id).hex() for m in months}
-    return {"chain": chain_id, "terms": ch["terms"], "disclosed_to": c.actor, "disclosed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    return {"chain": chain_id, "terms": ch["terms"], "entry0": es[0]["hash"] if es else None, "disclosed_to": c.actor, "disclosed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "rule": "All or nothing: every entry from 0 to the last one recorded by the date asked for.",
             "chain_keys": keys,
             "entries": [{**public_entry(e, ch["terms"]), "content": e["content"]} for e in es]}

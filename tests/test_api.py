@@ -540,9 +540,23 @@ class FakeRekor:
         pub = serialization.load_pem_public_key(base64.b64decode(spec["signature"]["publicKey"]["content"]))
         digest = bytes.fromhex(spec["data"]["hash"]["value"])
         pub.verify(base64.b64decode(spec["signature"]["content"]), digest, ec.ECDSA(utils.Prehashed(hashes.SHA256())))
-        FakeRekor.entries.append(spec["data"]["hash"]["value"])
-        n = len(FakeRekor.entries)
-        return {f"uuid{n}": {"logIndex": 1000 + n, "integratedTime": int(time.time())}}
+        n = len(FakeRekor.entries) + 1
+        uuid = f"{n:064x}"
+        FakeRekor.entries.append({"uuid": uuid, "hash": spec["data"]["hash"]["value"], "key": spec["signature"]["publicKey"]["content"],
+                                  "time": int(time.time())})
+        return {uuid: {"logIndex": 1000 + n, "integratedTime": FakeRekor.entries[-1]["time"]}}
+
+    @staticmethod
+    def record(uuid):
+        from datetime import datetime, timezone
+        e = next(x for x in FakeRekor.entries if x["uuid"] == uuid[-64:])
+        return datetime.fromtimestamp(e["time"], timezone.utc), e["hash"]
+
+    @staticmethod
+    def by_key(pem):
+        import base64
+        k = base64.b64encode(pem.encode()).decode()
+        return ["24296fb24b8ad77a" + x["uuid"] for x in FakeRekor.entries if x["key"] == k]  # Rekor prefixes a tree id
 
 
 @pytest.fixture
@@ -559,8 +573,12 @@ def qclient(client, tmp_path, monkeypatch):
     yield client
 
 
-def _fc(day_mw=0.5):
-    return {"model_version": "test-1", "hours": [
+COMMIT = "3f9c2a1" + "0" * 33
+INPUTS = [{"source": "CENACE PML MDA", "as_of": "2020-01-01T17:00:00-06:00", "retrieved_at": "2020-01-01T17:05:00-06:00", "sha256": "ab" * 32}]
+
+
+def _fc(day_mw=0.5, **kw):
+    return {"model_version": "test-1", "model_commit": COMMIT, "model_repo": "github.com/genau/pantheon-engine", "inputs": INPUTS, **kw, "hours": [
         {"hour": h, "sell_mw": day_mw if 10 <= h <= 16 else 0, "sell_price": 0, "buy_fixed_mw": 0.02,
          "buy_segments": [{"mw": 0.05, "price": 900}] if h in (3, 4) else []} for h in range(1, 25)]}
 
@@ -657,7 +675,7 @@ def test_chain_terms_forecasts_actuals_and_public_view(qclient):
     assert all(e["bitcoin"]["status"] == "pending" for e in pub["entries"])
     assert c.get(pub["entries"][1]["bitcoin"]["proof_url"]).status_code == 200
     assert c.get("/v1/vispera/index").json()["chains"][0]["length"] == 5
-    assert "BEGIN PUBLIC KEY" in c.get("/v1/vispera/public-key").text
+    assert c.get("/v1/vispera/chains/atotonilco/public-key").text == pub["terms"]["signing_key"]
     # the forecast page links to its chain entry
     assert c.get("/v1/qenergy/sites/atotonilco/forecasts/2030-01-02", headers=QENERGY).json()["chain"]["seq"] == 3
 
@@ -714,3 +732,60 @@ def test_anchor_retries_and_bitcoin_upgrade(qclient):
 def test_chain_needs_a_lasting_key(qclient, monkeypatch):
     monkeypatch.delenv("PANTHEON_VISPERA_ALLOW_EPHEMERAL")
     assert _start(qclient).status_code == 409
+
+
+
+def _vv():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("vv", "tools/verify_vispera.py"); vv = importlib.util.module_from_spec(spec); spec.loader.exec_module(vv)
+    vv.rekor_record, vv.rekor_entries_for_key = FakeRekor.record, FakeRekor.by_key
+    return vv
+
+
+def test_chained_forecast_needs_commit_and_inputs(qclient):
+    c = qclient
+    _start(c)
+    url = "/v1/qenergy/sites/atotonilco/forecasts/2030-01-01"
+    r = c.post(url, json=_fc(model_commit=None), headers=ENGINE)
+    assert r.status_code == 422 and "model_commit" in r.text
+    assert c.post(url, json=_fc(inputs=[]), headers=ENGINE).status_code == 422
+    future = [{**INPUTS[0], "retrieved_at": "2099-01-01T00:00:00+00:00"}]
+    assert c.post(url, json=_fc(inputs=future), headers=ENGINE).status_code == 422
+    # before the start date the plant has no chain, so the old format still works
+    assert c.post("/v1/qenergy/sites/atotonilco/forecasts/2029-12-31", json=_fc(model_commit=None, inputs=[]), headers=ENGINE).status_code == 201
+    d = c.post(url, json=_fc(), headers=ENGINE)
+    assert d.status_code == 201
+    disc = c.get("/v1/vispera/chains/atotonilco/disclosure", headers=CLIENT).json()
+    sealed = json.loads(disc["entries"][1]["content"])
+    assert sealed["model_commit"] == COMMIT and sealed["inputs"][0]["sha256"] == "ab" * 32
+
+
+def test_checker_online_catches_rebuilt_and_second_chain(qclient):
+    import copy, hashlib
+    from app import vispera as V
+    from app.routers.qenergy import get_qstore
+    c, vv = qclient, _vv()
+    _start(c)
+    for d, mw in [("2030-01-01", 0.4), ("2030-01-02", 0.5)]:
+        c.post(f"/v1/qenergy/sites/atotonilco/forecasts/{d}", json=_fc(mw), headers=ENGINE)
+    disc = c.get("/v1/vispera/chains/atotonilco/disclosure", headers=CLIENT).json()
+    pub = c.get("/v1/vispera/chains/atotonilco").json()
+    assert vv.check(disc, "client") == 0 and vv.check(pub, "public") == 0
+    assert vv.check(pub, "public", entry0=pub["entry0"]) == 0 and vv.check(pub, "public", entry0="00" * 32) == 1
+    # Genau rebuilds the chain with a better forecast: consistent with itself, caught by Rekor
+    t = copy.deepcopy(disc); es = t["entries"]
+    es[1]["content"] = es[1]["content"].replace('"sell_mw":0.4', '"sell_mw":0.41')
+    prev = es[0]["hash"]
+    for e in es[1:]:
+        s = vv.salt(t["chain_keys"][e["target_day"][:7]], e["target_day"], e["seq"]) if e["kind"] == "forecast" else b""
+        e["prev"], e["hash"] = prev, hashlib.sha256(s + e["content"].encode() + bytes.fromhex(prev)).hexdigest(); prev = e["hash"]
+    assert vv.check(t, "client", online=False) == 0
+    assert vv.check(t, "client") == 1
+    # Genau quietly logs a shadow forecast with the chain's key: Rekor's key index exposes it
+    store = app.dependency_overrides[get_qstore]()
+    key, pem = store.signing_key("atotonilco")
+    shadow = b"shadow forecast"
+    V.rekor_submit(key, pem, shadow, hashlib.sha256(shadow).hexdigest(), post=FakeRekor.post)
+    assert vv.check(disc, "client") == 1 and vv.check(pub, "public") == 1
+    # a different chain has a different key, so its entries don't count against this one
+    assert store.signing_key("other-zone")[1] != pem and store.signing_key("atotonilco")[1] == pem

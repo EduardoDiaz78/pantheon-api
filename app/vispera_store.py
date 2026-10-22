@@ -59,11 +59,19 @@ class ChainStore:
             self.db.execute("INSERT OR REPLACE INTO vsettings(k, v) VALUES (?,?)", (k, v))
             self.db.commit()
 
-    def signing_key(self):
-        key, pub, new = V.load_or_make_key(self.setting("rekor_key"))
-        if new:
-            self.set_setting("rekor_key", V.private_pem(key))
-        return key, pub
+    def seed(self) -> bytes:
+        """PANTHEON_REKOR_SEED (hex, set on the host) or, for tests and local runs only, a stored random one."""
+        import os
+        if os.getenv("PANTHEON_REKOR_SEED"):
+            return bytes.fromhex(os.environ["PANTHEON_REKOR_SEED"])
+        s = self.setting("rekor_seed")
+        if not s:
+            s = secrets.token_hex(32)
+            self.set_setting("rekor_seed", s)
+        return bytes.fromhex(s)
+
+    def signing_key(self, chain_id: str):
+        return V.chain_signing_key(self.seed(), chain_id)
 
     # ---------- chains ----------
     def chain(self, chain_id: str) -> dict | None:
