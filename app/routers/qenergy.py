@@ -10,7 +10,7 @@ from __future__ import annotations
 import csv
 import io
 import os
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Literal, Optional
 
@@ -18,7 +18,6 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
 
-from .. import anchor as btc
 from ..auth import Caller, need
 from ..errors import ApiError
 from ..qenergy_store import SITES, QStore
@@ -47,9 +46,21 @@ class ForecastHour(BaseModel):
     buy_segments: list[Segment] = Field(default_factory=list, max_length=3, description="Up to 3 price-sensitive purchase blocks")
 
 
+class ForecastInput(BaseModel):
+    source: str = Field(max_length=120, description="e.g. 'CENACE PML MDA', 'GFS 0.25 run 00Z', 'plant SCADA'")
+    as_of: datetime = Field(description="Latest moment the data covers / was published, with time zone")
+    retrieved_at: datetime = Field(description="When the engine downloaded it, with time zone")
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$", description="SHA-256 of the input file exactly as used")
+
+
 class ForecastIn(BaseModel):
     hours: list[ForecastHour] = Field(min_length=24, max_length=25)
     model_version: str = Field("unknown", max_length=80)
+    model_commit: Optional[str] = Field(None, pattern=r"^[0-9a-f]{40}$",
+                                        description="Git commit (SHA-1) of the code that ran. Required once the plant has a Víspera chain")
+    model_repo: Optional[str] = Field(None, max_length=200, description="Company repository holding that commit")
+    inputs: list[ForecastInput] = Field(default_factory=list, max_length=50,
+                                        description="Every input the model used. Required (at least one) once the plant has a Víspera chain")
 
     @field_validator("hours")
     @classmethod
@@ -68,23 +79,13 @@ class ForecastReceipt(BaseModel):
     received_at: str
     model_version: str
     sample: bool = False
-    anchor: Optional[str] = Field(None, description="Bitcoin timestamp: 'queued' when sent to OpenTimestamps, 'off' if disabled")
-
-
-class Anchor(BaseModel):
-    status: Literal["queued", "pending", "bitcoin", "failed", "off"] = Field(
-        description="queued = being sent; pending = calendars hold it, Bitcoin block not yet confirmed; bitcoin = anchored in a block")
-    block_height: Optional[int] = Field(None, description="Bitcoin block that proves the forecast existed by then")
-    stamped_at: Optional[str] = None
-    checked_at: Optional[str] = None
-    proof_url: Optional[str] = None
-    error: Optional[str] = None
+    chain: Optional[dict] = Field(None, description="The Víspera chain entry this forecast became: {chain, seq, hash}. "
+                                  "None if the plant has no chain yet or the day is before its start date")
 
 
 class ForecastOut(ForecastReceipt):
     posted_by: str
     hours: list[ForecastHour]
-    anchor: Optional[Anchor] = None
 
 
 class DayListing(BaseModel):
@@ -104,6 +105,9 @@ class ResultHour(BaseModel):
 
 class ResultsIn(BaseModel):
     hours: list[ResultHour] = Field(min_length=24, max_length=25)
+    source: str = Field("CENACE", description="Where the prices came from")
+    vintage: Optional[str] = Field(None, description="Which CENACE publication, e.g. 'MDA 2026-10-21 v1'")
+    retrieved_at: Optional[str] = Field(None, description="When the prices were downloaded, ISO 8601")
 
 
 class Site(BaseModel):
@@ -140,28 +144,44 @@ def sites(_: Caller = Depends(need("qenergy.read"))) -> list[Site]:
 def post_forecast(site_id: str, day: date, body: ForecastIn, tasks: BackgroundTasks, c: Caller = Depends(need("forecast.write")),
                   store: QStore = Depends(get_qstore)) -> ForecastReceipt:
     site_or_404(site_id)
+    ch = store.chain(site_id)
+    chained = bool(ch) and day.isoformat() >= ch["terms"]["start_date"]
+    if chained:
+        problems = []
+        if not body.model_commit or not body.model_repo:
+            problems.append({"field": "model_commit", "message": "the git commit and repository of the code that ran are required on a Víspera chain"})
+        if not body.inputs:
+            problems.append({"field": "inputs", "message": "list every input (source, as_of, retrieved_at, sha256) on a Víspera chain"})
+        now = datetime.now(timezone.utc)
+        for i, x in enumerate(body.inputs):
+            if x.as_of.tzinfo is None or x.retrieved_at.tzinfo is None:
+                problems.append({"field": f"inputs[{i}]", "message": "as_of and retrieved_at need a time zone"})
+            elif x.as_of > x.retrieved_at or x.retrieved_at > now:
+                problems.append({"field": f"inputs[{i}]", "message": "as_of must be before retrieved_at, and both in the past"})
+        if problems:
+            raise ApiError(422, "validation_error", details=problems)
     payload = {"hours": [h.model_dump() for h in body.hours]}
     rec = store.put_forecast(site_id, day, payload, posted_by=c.actor, model_version=body.model_version)
-    if btc.enabled():
-        tasks.add_task(stamp_forecast, store, rec["id"], rec["sha256"])  # after the reply, so posting is never slowed
-    return ForecastReceipt(**rec, anchor="queued" if btc.enabled() else "off")
+    sealed = {"site": site_id, "model_version": body.model_version, "model_commit": body.model_commit, "model_repo": body.model_repo,
+              "inputs": [x.model_dump(mode="json") for x in body.inputs], "record_sha256": rec["sha256"], **payload}
+    rec["chain"] = to_chain(store, tasks, site_id, day, "forecast", sealed, rec["id"])
+    return ForecastReceipt(**rec)
 
 
-def stamp_forecast(store: QStore, forecast_id: int, sha256: str) -> None:
-    try:
-        p = btc.stamp(sha256)
-        store.set_anchor(forecast_id, sha256, p.ots, p.status, p.block_height, stamped=True)
-    except Exception as e:
-        store.set_anchor(forecast_id, sha256, None, "failed", error=str(e)[:300])
+def to_chain(store: QStore, tasks: BackgroundTasks, chain_id: str, day: date, kind: str, payload: dict, forecast_id: Optional[int] = None) -> Optional[dict]:
+    """Append to the plant's Víspera chain if it has one and the day is on or after its start date; anchor after the reply."""
+    ch = store.chain(chain_id)
+    if not ch or day.isoformat() < ch["terms"]["start_date"]:
+        return None
+    from .vispera import anchor_entry
+    e = store.append(chain_id, kind, day.isoformat(), payload, forecast_id)
+    tasks.add_task(anchor_entry, store, e["id"])
+    return {"chain": chain_id, "seq": e["seq"], "hash": e["hash"]}
 
 
-def _anchor_out(site_id: str, day: date, f: dict) -> Optional[Anchor]:
-    a = f.get("anchor")
-    if not a:
-        return None if f["sample"] else Anchor(status="queued" if btc.enabled() else "off")
-    url = f"/v1/qenergy/sites/{site_id}/forecasts/{day}/proof.ots?version={f['version']}" if a["ots"] else None
-    return Anchor(status=a["status"], block_height=a["block_height"], stamped_at=a["stamped_at"], checked_at=a["checked_at"],
-                  proof_url=url, error=a["error"])
+def _chain_ref(f: dict) -> Optional[dict]:
+    e = f.get("entry")
+    return {"chain": e["chain"], "seq": e["seq"], "hash": e["hash"]} if e else None
 
 
 @router.get("/sites/{site_id}/forecasts", response_model=list[DayListing], summary="Days with a forecast, newest first")
@@ -176,7 +196,7 @@ def get_forecast(site_id: str, day: date, _: Caller = Depends(need("qenergy.read
     f = forecast_or_404(store, site_id, day)
     return ForecastOut(site=site_id, day=day, version=f["version"], sha256=f["sha256"], received_at=f["received_at"],
                        model_version=f["model_version"], sample=f["sample"], posted_by=f["posted_by"], hours=f["payload"]["hours"],
-                       anchor=_anchor_out(site_id, day, f))
+                       chain=_chain_ref(f))
 
 
 @router.get("/sites/{site_id}/forecasts/{day}/canonical", summary="The exact bytes that were fingerprinted, to re-check the SHA-256 independently")
@@ -191,109 +211,6 @@ def forecast_canonical(site_id: str, day: date, version: Optional[int] = Query(N
 def forecast_history(site_id: str, day: date, _: Caller = Depends(need("qenergy.read")), store: QStore = Depends(get_qstore)) -> list[dict]:
     site_or_404(site_id)
     return store.history(site_id, day)
-
-
-@router.get("/sites/{site_id}/forecasts/{day}/proof.ots",
-            summary="Bitcoin timestamp proof (OpenTimestamps .ots) for a forecast version; verify it against /canonical")
-def forecast_proof(site_id: str, day: date, version: Optional[int] = Query(None, ge=1, description="Default: latest"),
-                   _: Caller = Depends(need("qenergy.read")), store: QStore = Depends(get_qstore)) -> Response:
-    site_or_404(site_id)
-    f = forecast_or_404(store, site_id, day, version)
-    a = f["anchor"]
-    if not a or not a["ots"]:
-        raise ApiError(404, "not_found", what=f"Bitcoin proof for {site_id} {day} v{f['version']} (not stamped yet)")
-    ots = a["ots"]
-    if a["status"] == "pending" and btc.enabled():  # try to complete it now; harmless if Bitcoin hasn't confirmed yet
-        p = btc.upgrade(ots)
-        store.set_anchor(f["id"], f["sha256"], p.ots, p.status, p.block_height)
-        ots = p.ots
-    name = f"{site_id}-{day}-v{f['version']}.json.ots"
-    return Response(ots, media_type="application/octet-stream", headers={"Content-Disposition": f'attachment; filename="{name}"'})
-
-
-def refresh_loop(every_s: int = 1800) -> None:
-    """Background thread: every 30 minutes, stamp anything missed and complete pending Bitcoin proofs."""
-    import threading
-    import time
-
-    def run():
-        while True:
-            time.sleep(every_s)
-            try:
-                _refresh(get_qstore())
-            except Exception:
-                pass
-    threading.Thread(target=run, daemon=True, name="btc-anchor-refresh").start()
-
-
-class AnchorRow(BaseModel):
-    day: date
-    version: int
-    sha256: str
-    received_at: str
-    on_time: bool = Field(description="Received before 10:00 Mexico City time the day before (the day-ahead offer deadline)")
-    model_version: str
-    posted_by: str
-    sample: bool
-    status: Literal["sample", "queued", "pending", "bitcoin", "failed", "off"]
-    block_height: Optional[int] = None
-    stamped_at: Optional[str] = None
-    checked_at: Optional[str] = None
-    error: Optional[str] = None
-    proof_url: Optional[str] = None
-    canonical_url: str
-
-
-class AnchorBoard(BaseModel):
-    site: str
-    enabled: bool
-    calendars: list[str]
-    counts: dict[str, int]
-    versions: list[AnchorRow]
-
-
-def _deadline_utc(day: date) -> str:
-    # 10:00 the day before in Mexico City (UTC−6 all year since 2022) = 16:00 UTC the day before
-    return (day - timedelta(days=1)).isoformat() + "T16:00:00+00:00"
-
-
-@router.get("/sites/{site_id}/anchors", response_model=AnchorBoard, summary="Bitcoin timestamp progress for every forecast version")
-def anchor_board(site_id: str, _: Caller = Depends(need("qenergy.read")), store: QStore = Depends(get_qstore)) -> AnchorBoard:
-    site_or_404(site_id)
-    on = btc.enabled()
-    out, counts = [], {k: 0 for k in ("bitcoin", "pending", "queued", "failed", "sample", "off")}
-    for r in store.versions(site_id):
-        d = date.fromisoformat(r["day"])
-        st = "sample" if r["sample"] else (r["status"] or ("queued" if on else "off"))
-        counts[st] += 1
-        base = f"/v1/qenergy/sites/{site_id}/forecasts/{d}"
-        out.append(AnchorRow(day=d, version=r["version"], sha256=r["sha256"], received_at=r["received_at"],
-                             on_time=r["received_at"] < _deadline_utc(d), model_version=r["model_version"], posted_by=r["posted_by"],
-                             sample=bool(r["sample"]), status=st, block_height=r["block_height"], stamped_at=r["stamped_at"],
-                             checked_at=r["checked_at"], error=r["error"],
-                             proof_url=f"{base}/proof.ots?version={r['version']}" if r["has_proof"] else None,
-                             canonical_url=f"{base}/canonical?version={r['version']}"))
-    return AnchorBoard(site=site_id, enabled=on, calendars=btc.CALENDARS, counts=counts, versions=out)
-
-
-@router.post("/anchors/refresh", summary="Stamp any forecast not yet sent and complete pending Bitcoin proofs (run hourly)")
-def refresh_anchors(_: Caller = Depends(need("forecast.write")), store: QStore = Depends(get_qstore)) -> dict:
-    return _refresh(store)
-
-
-def _refresh(store: QStore) -> dict:
-    if not btc.enabled():
-        return {"enabled": False}
-    out = {"enabled": True, "stamped": 0, "anchored": 0, "still_pending": 0, "failed": 0}
-    for r in store.unfinished_anchors():
-        if not r["ots"]:  # never sent, or the calendars were down last time
-            stamp_forecast(store, r["id"], r["sha256"])
-            out["failed" if store.anchor(r["id"])["status"] == "failed" else "stamped"] += 1
-            continue
-        p = btc.upgrade(r["ots"])
-        store.set_anchor(r["id"], r["sha256"], p.ots, p.status, p.block_height)
-        out["anchored" if p.status == "bitcoin" else "still_pending"] += 1
-    return out
 
 
 def _xlsx(wb) -> bytes:
@@ -360,11 +277,15 @@ def offer_compra(site_id: str, day: date, days: int = Query(7, ge=1, le=7), _: C
 
 
 @router.post("/sites/{site_id}/results/{day}", status_code=201, summary="Post a day's cleared MW, metered MWh and nodal prices")
-def post_results(site_id: str, day: date, body: ResultsIn, c: Caller = Depends(need("qenergy.write")),
+def post_results(site_id: str, day: date, body: ResultsIn, tasks: BackgroundTasks, c: Caller = Depends(need("qenergy.write")),
                  store: QStore = Depends(get_qstore)) -> dict:
     site_or_404(site_id)
     store.put_results(site_id, day, {"hours": [h.model_dump() for h in body.hours]}, posted_by=c.actor)
-    return {"site": site_id, "day": day.isoformat(), "status": "stored"}
+    # Only the public prices go into the chain (in clear), never QEnergy's cleared or metered volumes.
+    actuals = {"site": site_id, "source": body.source, "vintage": body.vintage, "retrieved_at": body.retrieved_at,
+               "prices": [{"hour": h.hour, "pml_mda": h.pml_mda, "pml_mtr": h.pml_mtr} for h in body.hours]}
+    ref = to_chain(store, tasks, site_id, day, "actuals", actuals)
+    return {"site": site_id, "day": day.isoformat(), "status": "stored", "chain": ref}
 
 
 def _settlement_rows(store: QStore, site_id: str, month: str) -> tuple[list[dict], list[dict], bool]:

@@ -13,6 +13,8 @@ import sqlite3
 import threading
 from datetime import date, datetime, timedelta, timezone
 
+from .vispera_store import ChainStore
+
 # Plants QEnergy represents. Codes come from José Antonio's templates.
 SITES: dict[str, dict] = {
     "atotonilco": {"id": "atotonilco", "name": "Atotonilco", "central": "01GTT", "unidad": "01GTT-EX1",
@@ -29,7 +31,7 @@ def canonical(payload: dict) -> str:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
-class QStore:
+class QStore(ChainStore):
     def __init__(self, path: str | None = None, sample: bool | None = None) -> None:
         self.path = path or os.getenv("PANTHEON_DB", os.path.join(os.path.dirname(__file__), "..", "pantheon.db"))
         self.lock = threading.Lock()
@@ -42,9 +44,8 @@ class QStore:
             CREATE TABLE IF NOT EXISTS results (id INTEGER PRIMARY KEY AUTOINCREMENT, site TEXT, day TEXT, payload TEXT,
               received_at TEXT, posted_by TEXT, sample INTEGER DEFAULT 0);
             CREATE INDEX IF NOT EXISTS rs_site_day ON results(site, day);
-            CREATE TABLE IF NOT EXISTS anchors (forecast_id INTEGER PRIMARY KEY, sha256 TEXT, ots BLOB, status TEXT,
-              block_height INTEGER, stamped_at TEXT, checked_at TEXT, error TEXT);
         """)
+        self._init_chains()
         if sample is None:
             sample = os.getenv("PANTHEON_QENERGY_SAMPLE", "true").lower() == "true"
         if sample and not self.db.execute("SELECT 1 FROM forecasts LIMIT 1").fetchone():
@@ -74,7 +75,7 @@ class QStore:
                             (site, day.isoformat(), version - 1)).fetchone()
         return {"id": r["id"], "site": site, "day": r["day"], "version": version, "sha256": r["sha256"], "received_at": r["received_at"],
                 "posted_by": r["posted_by"], "model_version": r["model_version"], "sample": bool(r["sample"]),
-                "payload": {"hours": json.loads(r["payload"])["hours"]}, "canonical": r["payload"], "anchor": self.anchor(r["id"])}
+                "payload": {"hours": json.loads(r["payload"])["hours"]}, "canonical": r["payload"], "entry": self.entry_for_forecast(r["id"])}
 
     def forecast_days(self, site: str) -> list[dict]:
         rows = self.db.execute("""SELECT day, COUNT(*) n, MAX(received_at) last, MAX(sample) sample FROM forecasts WHERE site=?
@@ -82,40 +83,11 @@ class QStore:
         return [{"day": r["day"], "versions": r["n"], "last_received_at": r["last"], "sample": bool(r["sample"])} for r in rows]
 
     def history(self, site: str, day: date) -> list[dict]:
-        rows = self.db.execute("""SELECT f.sha256, f.received_at, f.posted_by, f.model_version, a.status anchor_status, a.block_height
-                                  FROM forecasts f LEFT JOIN anchors a ON a.forecast_id = f.id WHERE f.site=? AND f.day=? ORDER BY f.id""",
+        rows = self.db.execute("""SELECT f.sha256, f.received_at, f.posted_by, f.model_version, e.seq chain_seq, e.hash chain_hash,
+                                         e.ots_status, e.block_height, e.rekor_index, e.rekor_time
+                                  FROM forecasts f LEFT JOIN entries e ON e.forecast_id = f.id WHERE f.site=? AND f.day=? ORDER BY f.id""",
                                (site, day.isoformat())).fetchall()
         return [{"version": i + 1, **dict(r)} for i, r in enumerate(rows)]
-
-    def versions(self, site: str) -> list[dict]:
-        """Every forecast version for a plant, newest first, with its Bitcoin anchor status."""
-        rows = self.db.execute("""SELECT f.id, f.day, f.sha256, f.received_at, f.posted_by, f.model_version, f.sample,
-                                         a.status, a.block_height, a.stamped_at, a.checked_at, a.error, a.ots IS NOT NULL has_proof,
-                                         (SELECT COUNT(*) FROM forecasts g WHERE g.site=f.site AND g.day=f.day AND g.id<=f.id) version
-                                  FROM forecasts f LEFT JOIN anchors a ON a.forecast_id = f.id WHERE f.site=? ORDER BY f.day DESC, f.id DESC""",
-                               (site,)).fetchall()
-        return [dict(r) for r in rows]
-
-    # ---------- Bitcoin anchors (see anchor.py) ----------
-    def set_anchor(self, forecast_id: int, sha256: str, ots: bytes | None, status: str, block_height: int | None = None,
-                   error: str | None = None, stamped: bool = False) -> None:
-        now = datetime.now(timezone.utc).isoformat(timespec="seconds")
-        with self.lock:
-            prev = self.db.execute("SELECT stamped_at FROM anchors WHERE forecast_id=?", (forecast_id,)).fetchone()
-            stamped_at = now if stamped else (prev["stamped_at"] if prev else None)
-            self.db.execute("""INSERT OR REPLACE INTO anchors(forecast_id, sha256, ots, status, block_height, stamped_at, checked_at, error)
-                               VALUES (?,?,?,?,?,?,?,?)""", (forecast_id, sha256, ots, status, block_height, stamped_at, now, error))
-            self.db.commit()
-
-    def anchor(self, forecast_id: int) -> dict | None:
-        r = self.db.execute("SELECT * FROM anchors WHERE forecast_id=?", (forecast_id,)).fetchone()
-        return dict(r) if r else None
-
-    def unfinished_anchors(self) -> list[dict]:
-        """Real (non-sample) forecasts not yet anchored in a Bitcoin block: never stamped, failed, or pending."""
-        rows = self.db.execute("""SELECT f.id, f.sha256, a.ots, a.status FROM forecasts f LEFT JOIN anchors a ON a.forecast_id = f.id
-                                  WHERE f.sample = 0 AND (a.status IS NULL OR a.status != 'bitcoin') ORDER BY f.id""").fetchall()
-        return [dict(r) for r in rows]
 
     # ---------- results (cleared, metered, prices) ----------
     def put_results(self, site: str, day: date, payload: dict, posted_by: str, sample: bool = False) -> None:
@@ -132,6 +104,8 @@ class QStore:
 
     # ---------- sample data so the page works before the engine is connected ----------
     def _seed(self) -> None:
+        from .vispera_store import seed_demo_chain
+        seed_demo_chain(self, SAMPLE_SELL)
         start = date(2026, 10, 12)
         for k in range(7):
             d = start + timedelta(days=k)

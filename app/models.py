@@ -20,6 +20,7 @@ class Role(str, Enum):
     admin = "admin"
     engine = "engine"      # the Pantheon forecasting engine: posts forecasts, nothing else
     partner = "partner"    # QEnergy (José Antonio): offer files and settlements only
+    client = "client"      # a customer or lender under NDA: receives the Víspera chain disclosure, nothing else
 
 
 class Strategy(str, Enum):

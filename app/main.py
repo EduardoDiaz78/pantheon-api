@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .auth import Caller, current, get_store
 
 from . import errors
-from .routers import alerts, cenace, channels, finance, integrations, me, plans, products, qenergy, sites
+from .routers import alerts, cenace, channels, finance, integrations, me, plans, products, qenergy, sites, vispera
 
 DESCRIPTION = """
 Client API for Pantheon, Genau AI's forecasting and dispatch platform for solar + battery plants and battery fleets in Mexico.
@@ -69,7 +69,7 @@ app = FastAPI(title="Pantheon API", version="0.2.0", description=DESCRIPTION)
 def _start_bitcoin_refresh() -> None:
     from . import anchor
     if anchor.enabled() and os.getenv("PANTHEON_OTS_REFRESH", "true").lower() == "true":
-        qenergy.refresh_loop()
+        vispera.refresh_loop()
 errors.install(app)
 
 # Which websites may call this API from a browser. Set ALLOWED_ORIGINS on the host to a comma-separated list,
@@ -77,7 +77,7 @@ errors.install(app)
 _origins = [o.strip().rstrip("/") for o in os.getenv("ALLOWED_ORIGINS", "*").split(",") if o.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=_origins, allow_methods=["GET", "POST", "PUT", "DELETE"],
                    allow_headers=["X-API-Key", "Content-Type", "Accept-Language"], expose_headers=["Content-Disposition"], max_age=3600)
-for r in (me.router, sites.router, plans.router, cenace.router, alerts.router, finance.router, channels.router, integrations.router, products.router, qenergy.router):
+for r in (me.router, sites.router, plans.router, cenace.router, alerts.router, finance.router, channels.router, integrations.router, products.router, qenergy.router, vispera.router):
     app.include_router(r)
 
 
